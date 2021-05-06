@@ -1,0 +1,170 @@
+[
+  {
+    "method": "get",
+    "page": "contacts",
+    "idMinimumResponsibilityRequired": "1",
+    "createdBy": "1"
+  },
+  {
+    "method": "post",
+    "page": "contacts",
+    "idMinimumResponsibilityRequired": "2",
+    "createdBy": "1"
+  },
+  {
+    "method": "put",
+    "page": "contacts",
+    "idMinimumResponsibilityRequired": "2",
+    "createdBy": "1"
+  },
+  {
+    "method": "delete",
+    "page": "contacts",
+    "idMinimumResponsibilityRequired": "3",
+    "createdBy": "1"
+  },
+  {
+    "method": "get",
+    "page": "publishers",
+    "idMinimumResponsibilityRequired": "1",
+    "createdBy": "1"
+  },
+  {
+    "method": "post",
+    "page": "publishers",
+    "idMinimumResponsibilityRequired": "2",
+    "createdBy": "1"
+  },
+  {
+    "method": "put",
+    "page": "publishers",
+    "idMinimumResponsibilityRequired": "2",
+    "createdBy": "1"
+  },
+  {
+    "method": "delete",
+    "page": "publishers",
+    "idMinimumResponsibilityRequired": "2",
+    "createdBy": "1"
+  },
+  {
+    "method": "get",
+    "page": "status",
+    "idMinimumResponsibilityRequired": "1",
+    "createdBy": "1"
+  },
+  {
+    "method": "post",
+    "page": "status",
+    "idMinimumResponsibilityRequired": "2",
+    "createdBy": "1"
+  },
+  {
+    "method": "put",
+    "page": "status",
+    "idMinimumResponsibilityRequired": "2",
+    "createdBy": "1"
+  },
+  {
+    "method": "delete",
+    "page": "status",
+    "idMinimumResponsibilityRequired": "2",
+    "createdBy": "1"
+  },
+  {
+    "method": "get",
+    "page": "languages",
+    "idMinimumResponsibilityRequired": "1",
+    "createdBy": "1"
+  },
+  {
+    "method": "post",
+    "page": "languages",
+    "idMinimumResponsibilityRequired": "2",
+    "createdBy": "1"
+  },
+  {
+    "method": "put",
+    "page": "languages",
+    "idMinimumResponsibilityRequired": "2",
+    "createdBy": "1"
+  },
+  {
+    "method": "delete",
+    "page": "languages",
+    "idMinimumResponsibilityRequired": "2",
+    "createdBy": "1"
+  },
+  {
+    "method": "get",
+    "page": "detailscontacts",
+    "idMinimumResponsibilityRequired": "1",
+    "createdBy": "1"
+  },
+  {
+    "method": "post",
+    "page": "detailscontacts",
+    "idMinimumResponsibilityRequired": "1",
+    "createdBy": "1"
+  },
+  {
+    "method": "put",
+    "page": "detailscontacts",
+    "idMinimumResponsibilityRequired": "2",
+    "createdBy": "1"
+  },
+  {
+    "method": "delete",
+    "page": "detailscontacts",
+    "idMinimumResponsibilityRequired": "3",
+    "createdBy": "1"
+  },
+  {
+    "method": "get",
+    "page": "permissions",
+    "idMinimumResponsibilityRequired": "4",
+    "createdBy": "1"
+  },
+  {
+    "method": "post",
+    "page": "permissions",
+    "idMinimumResponsibilityRequired": "4",
+    "createdBy": "1"
+  },
+  {
+    "method": "put",
+    "page": "permissions",
+    "idMinimumResponsibilityRequired": "4",
+    "createdBy": "1"
+  },
+  {
+    "method": "delete",
+    "page": "permissions",
+    "idMinimumResponsibilityRequired": "4",
+    "createdBy": "1"
+  },
+  {
+    "method": "get",
+    "page": "responsibility",
+    "idMinimumResponsibilityRequired": "1",
+    "createdBy": "1"
+  },
+  {
+    "method": "post",
+    "page": "responsibility",
+    "idMinimumResponsibilityRequired": "4",
+    "createdBy": "1"
+  },
+  {
+    "method": "put",
+    "page": "responsibility",
+    "idMinimumResponsibilityRequired": "4",
+    "createdBy": "1"
+  },
+  {
+    "method": "delete",
+    "page": "responsibility",
+    "idMinimumResponsibilityRequired": "4",
+    "createdBy": "1"
+  }
+]

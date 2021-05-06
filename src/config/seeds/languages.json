@@ -1,0 +1,32 @@
+[
+  {
+    "id": "1",
+    "name": "portuguese",
+    "color": "#dc3545",
+    "createdBy": "1"
+  },
+  {
+    "id": "2",
+    "name": "spanish",
+    "color": "#28a745",
+    "createdBy": "1"
+  },
+  {
+    "id": "3",
+    "name": "english",
+    "color": "#007bff",
+    "createdBy": "1"
+  },
+  {
+    "id": "4",
+    "name": "germany",
+    "color": "#ffc107",
+    "createdBy": "1"
+  },
+  {
+    "id": "5",
+    "name": "unknown",
+    "color": "#f8f9fa",
+    "createdBy": "1"
+  }
+]

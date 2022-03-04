@@ -1,1 +1,6 @@
 node_modules
+authenticate.log
+errorHandler.log
+permissions.log
+.nodemon.json
+.DS_Store

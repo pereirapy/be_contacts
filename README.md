@@ -8,7 +8,8 @@ In development or test environment is just update the json file, but in producti
 2 - Development environment:
 
 - After you have created the database run `npm run db:migrate` to create all tables and views
-- Execute `npm run dev`
+- run `npm run db:seed` to insert all data
+- run `npm run dev`
 
 3 - Production environment:
 
@@ -21,8 +22,10 @@ In development or test environment is just update the json file, but in producti
   - Click over Settings tab
   - Database Credentials -> View Credentials and copy the URI string and saved it
   - Close the Database windows and go back to the first one, there click over the button `Open app` and copy the URL and save it
+  - Go to `Settings` tab -> Reveal Config Vars and add a new one: `PGSSLMODE` as key and `no-verify`and the value
+  - Go to `Deploy` tab -> Manual deploy -> Choose a branch to deploy -> Deploy Branch (If some error happens, you will have to reset database before try again)
   - Those information you will use in frontend app
-- In heroku the app will run automatically the scripts `npm run db:migrate` and `npm start`
+- In heroku the app will run automatically the scripts `npm run db:migrate` and `db:seed` and `npm start`
 
 ## Available Scripts
 

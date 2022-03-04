@@ -19,7 +19,7 @@
     "lint:eslint": "eslint . --ext .js,.jsx --fix",
     "lint:format": "prettier --config .prettierrc 'src/**/*.js'  --check",
     "format": "prettier --config .prettierrc \"./src/**/*.js\" --write",
-    "heroku-postbuild": "node_modules/.bin/knex migrate:latest && node_modules/.bin/knex seed:run"
+    "heroku-postbuild": "node_modules/.bin/knex migrate:latest"
   },
   "keywords": [],
   "author": "",

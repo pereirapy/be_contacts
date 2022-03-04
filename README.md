@@ -7,8 +7,7 @@
 
 3 - Development environment:
 
-- After you have created the database run `npm run db:migrate` to create all tables and views
-- run `npm run db:seed` to insert all data
+- After you have created the database run `npm run db:migrate` to create all tables, views and the mandatory data
 - run `npm run dev`
 
 4 - Production environment:
@@ -20,7 +19,6 @@
   - Go to `Resources` and search by `Heroku Postrgres` and add it
   - Close the Database windows and go back to the first one, there click over the button `Open app` and copy the URL and save it because you will use in the frontend app
   - Go to `Settings` tab -> Reveal Config Vars and add a new one: `PGSSLMODE` as key and `no-verify`and the value
-  - Update the script `heroku-postbuild`in the file `package.json` to be `"heroku-postbuild": "node_modules/.bin/knex migrate:latest && node_modules/.bin/knex seed:run"` in THE FIRST TIME THAT YOU DEPLOY. This is necessary to insert mandatory data. After the first deploy removes `&& node_modules/.bin/knex seed:run` to avoid try to insert the same data again and push this update to your repo. Other option to avoid this is using some IDE of database to make manually the insert data mandatory.
   - Go to `Deploy` tab -> Manual deploy -> Choose a branch to deploy -> Deploy Branch (If some error happens, you will have to reset database before try again)
   - Those information you will use in frontend app
 - In heroku the app will run automatically the scripts `npm run db:migrate` and `npm start`

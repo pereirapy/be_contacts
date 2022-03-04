@@ -72,5 +72,5 @@ export default {
   getAllFiltersWaitingFeedback,
   create,
   update,
-  deleteOne
+  deleteOne,
 }

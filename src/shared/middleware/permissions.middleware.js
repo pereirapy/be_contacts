@@ -13,7 +13,7 @@ const permissionGuard = async (req, res, next) => {
       responseError({
         cod: ERROR_ON_PERMISSIONS,
         httpErrorCode: HttpStatus.FORBIDDEN,
-        error
+        error,
       })
     )
   }

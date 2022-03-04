@@ -1,19 +1,10 @@
 import knex from '../config/connection'
 import * as detailsContact from './detailsContacts.model'
 import crud from './crudGeneric.model'
+import { getDetailsCampaignActive } from './campaigns.model'
+
 import { WAITING_FEEDBACK } from '../shared/constants/contacts.constant'
-import {
-  isEmpty,
-  map,
-  contains,
-  first,
-  last,
-  reduce,
-  concat,
-  isNil,
-  some,
-  compact
-} from 'lodash/fp'
+import { isEmpty, map, reduce, concat, isNil, some, compact } from 'lodash/fp'
 
 const tableName = 'contacts'
 const columnPrimary = 'phone'
@@ -31,16 +22,36 @@ const fields = [
   'idLocation',
   'email',
   'note',
-  'typeCompany'
+  'contactCreatedAt',
+  'contactCreatedBy',
+  'contactUpdatedAt',
+  'contactUpdatedBy',
+  'typeCompany',
 ]
 
-const getAll = async queryParams => {
+const getAll = async (queryParams) => {
   const {
     sort = 'lastConversationInDays:DESC',
     perPage,
     currentPage,
-    filters
+    filters,
   } = queryParams
+
+  const {
+    name,
+    owner,
+    phone,
+    genders,
+    note,
+    languages,
+    status,
+    locations,
+    typeCompany,
+    modeAllContacts,
+  } = JSON.parse(filters)
+
+  const campaign = await getDetailsCampaignActive()
+
   const sql = knex
     .select(
       'name',
@@ -57,33 +68,36 @@ const getAll = async queryParams => {
       'note',
       'languageName',
       'statusDescription',
-      'createdAtDetailsContacts',
       'lastConversationInDays',
       'publisherName',
       'information',
-      'createdAtDetailsContacts'
+      'waitingFeedback',
+      'createdAtDetailsContacts',
+      'updatedAt',
+      'publisherNameUpdatedBy',
+      'idCampaign',
+      'campaignName',
+      'campaignDateStart',
+      'campaignDateFinal'
     )
-    .from('viewListContacts')
-  if (!isEmpty(filters)) {
-    const {
-      name,
-      owner,
-      phone,
-      genders,
-      note,
-      languages,
-      status,
-      locations,
-      typeCompany
-    } = JSON.parse(filters)
+    .from('viewListAllContacts')
 
+  sql.whereNotNull('phone')
+
+  if (!isEmpty(filters) && modeAllContacts !== '-1' && campaign) {
+    sql.andWhere((builder) =>
+      builder.where('idCampaign', '<>', campaign.id).orWhereNull('idCampaign')
+    )
+  }
+
+  if (!isEmpty(filters)) {
     if (
       !isEmpty(name) &&
       !isEmpty(phone) &&
       !isEmpty(note) &&
       !isEmpty(owner)
     ) {
-      sql.where(builder =>
+      sql.andWhere((builder) =>
         builder
           .where('name', 'ilike', `%${name}%`)
           .orWhere('publisherName', 'ilike', `%${name}%`)
@@ -92,37 +106,51 @@ const getAll = async queryParams => {
           .orWhere('note', 'ilike', `%${note}%`)
       )
     }
-    if (!isEmpty(genders)) sql.andWhere(qB => qB.whereIn('gender', genders))
+
+    if (!isEmpty(genders)) sql.andWhere((qB) => qB.whereIn('gender', genders))
 
     if (!isEmpty(languages))
-      sql.andWhere(qB => qB.whereIn('idLanguage', languages))
+      sql.andWhere((qB) => qB.whereIn('idLanguage', languages))
 
-    if (!isEmpty(status)) sql.andWhere(qB => qB.whereIn('idStatus', status))
+    if (!isEmpty(status)) sql.andWhere((qB) => qB.whereIn('idStatus', status))
 
     if (!isEmpty(locations)) {
       const someNull = some(isNil, locations)
       const cleanLocation = compact(locations)
 
       if (!isEmpty(cleanLocation) && someNull) {
-        sql.andWhere(qB =>
+        sql.andWhere((qB) =>
           qB.whereIn('idLocation', cleanLocation).orWhereNull('idLocation')
         )
-      } else if (someNull) sql.andWhere(qB => qB.whereNull('idLocation'))
-      else sql.andWhere(qB => qB.whereIn('idLocation', cleanLocation))
+      } else if (someNull) sql.andWhere((qB) => qB.whereNull('idLocation'))
+      else sql.andWhere((qB) => qB.whereIn('idLocation', cleanLocation))
     }
 
     if (typeCompany !== '-1')
-      sql.andWhere(qB => qB.where('typeCompany', typeCompany))
+      sql.andWhere((qB) => qB.where('typeCompany', typeCompany))
+
+    if (modeAllContacts !== '-1')
+      sql.andWhere((qB) => qB.where('waitingFeedback', modeAllContacts))
   }
   return sql.orderByRaw(crud.parseOrderBy(sort)).paginate(perPage, currentPage)
 }
 
 const getGenders = async () =>
+  knex.count('gender').select('gender').from(tableName).groupBy('gender')
+
+const getCampaigns = async () =>
   knex
-    .count('gender')
-    .select('gender')
-    .from(tableName)
-    .groupBy('gender')
+    .count('idCampaign')
+    .select('idCampaign', 'campaigns.name as campaignName')
+    .from('viewListAllContacts')
+    .leftJoin(
+      'campaigns',
+      'campaigns.id',
+      '=',
+      'viewListAllContacts.idCampaign'
+    )
+    .whereNotNull('idCampaign')
+    .groupBy('idCampaign', 'campaigns.name')
 
 const getLanguages = async () =>
   knex
@@ -166,12 +194,12 @@ const getType = async () => {
   )
   const typeCompany = concat(isTypeCompany, {
     count: typeBoth,
-    typeCompanySelected: '-1'
+    typeCompanySelected: '-1',
   })
   return map(
-    option => ({
+    (option) => ({
       ...option,
-      typeCompanySelected: String(Number(option.typeCompanySelected))
+      typeCompanySelected: String(Number(option.typeCompanySelected)),
     }),
     typeCompany
   )
@@ -182,17 +210,19 @@ const getFilters = async () => {
   const status = await getStatus()
   const locations = await getLocations()
   const typeCompany = await getType()
+  const campaigns = await getCampaigns()
 
   return {
     genders,
     languages,
     status,
     locations,
-    typeCompany
+    typeCompany,
+    campaigns,
   }
 }
 
-const getOneWithDetails = async phone =>
+const getOneWithDetails = async (phone) =>
   knex
     .select(
       'contacts.name',
@@ -206,6 +236,10 @@ const getOneWithDetails = async phone =>
       'contacts.idLocation',
       'contacts.email',
       'contacts.note',
+      'contacts.createdAt as contactCreatedAt',
+      'contacts.updatedAt as contactUpdatedAt',
+      'publishers.name as contactUpdatedBy',
+      'publishersCreatedBy.name as contactCreatedBy',
       'detailsContacts.*'
     )
     .from(tableName)
@@ -215,9 +249,16 @@ const getOneWithDetails = async phone =>
       '=',
       'contacts.phone'
     )
-    .where(columnPrimary, '=', phone)
+    .leftJoin(
+      'publishers as publishersCreatedBy',
+      'publishersCreatedBy.id',
+      '=',
+      'contacts.createdBy'
+    )
+    .leftJoin('publishers', 'publishers.id', '=', 'contacts.updatedBy')
+    .where(`contacts.${columnPrimary}`, '=', phone)
 
-const createRecord = async data => crud.createRecord(data, tableName)
+const createRecord = async (data) => crud.createRecord(data, tableName)
 
 const updateRecord = async ({ id, data }) =>
   crud.updateRecord({ id, data, tableName, columnPrimary })
@@ -227,10 +268,8 @@ async function deleteRecord(id) {
   return crud.deleteRecord({ id, tableName, columnPrimary })
 }
 
-const getSummaryTotals = async userId => {
-  const totalContacts = await knex(tableName)
-    .count('phone')
-    .first()
+const getSummaryTotals = async (userId, idCampaign) => {
+  const totalContacts = await knex(tableName).count('phone').first()
 
   const totalContactsByType = await knex(tableName)
     .count('phone')
@@ -243,20 +282,28 @@ const getSummaryTotals = async userId => {
     .where('typeCompany', false)
     .groupBy('gender')
 
-  const totalContactsNotCompanyContacted = await knex('detailsContacts')
+  const totalContactsNotCompanyContactedSql = knex('detailsContacts')
     .countDistinct('phone')
     .leftJoin('contacts', 'contacts.phone', '=', 'detailsContacts.phoneContact')
     .where('contacts.typeCompany', false)
     .whereNot({ information: WAITING_FEEDBACK })
-    .first()
+  if (idCampaign)
+    totalContactsNotCompanyContactedSql.andWhere('idCampaign', idCampaign)
 
-  const totalContactsByGenderContacted = await knex('detailsContacts')
+  const totalContactsNotCompanyContacted =
+    await totalContactsNotCompanyContactedSql.first()
+
+  const totalContactsByGenderContactedSql = knex('detailsContacts')
     .countDistinct('phone')
     .select('gender')
     .leftJoin('contacts', 'contacts.phone', '=', 'detailsContacts.phoneContact')
     .where('contacts.typeCompany', false)
     .whereNot({ information: WAITING_FEEDBACK })
-    .groupBy('contacts.gender')
+  if (idCampaign)
+    totalContactsByGenderContactedSql.andWhere('idCampaign', idCampaign)
+
+  const totalContactsByGenderContacted =
+    await totalContactsByGenderContactedSql.groupBy('contacts.gender')
 
   const totalContactsByLanguage = await knex(tableName)
     .count('phone')
@@ -267,7 +314,7 @@ const getSummaryTotals = async userId => {
     .leftJoin('languages', 'languages.id', '=', 'contacts.idLanguage')
     .groupBy('languages.name', 'languages.color')
 
-  const totalContactsByLanguageContacted = await knex('detailsContacts')
+  const totalContactsByLanguageContactedSql = knex('detailsContacts')
     .countDistinct('contacts.phone')
     .select(
       'languages.name as languageName',
@@ -276,29 +323,53 @@ const getSummaryTotals = async userId => {
     .leftJoin('contacts', 'contacts.phone', '=', 'detailsContacts.phoneContact')
     .leftJoin('languages', 'languages.id', '=', 'contacts.idLanguage')
     .whereNot({ information: WAITING_FEEDBACK })
-    .groupBy('languages.name', 'languages.color')
+  if (idCampaign)
+    totalContactsByLanguageContactedSql.andWhere('idCampaign', idCampaign)
 
-  const totalContactsContacted = await knex('detailsContacts')
+  const totalContactsByLanguageContacted =
+    await totalContactsByLanguageContactedSql.groupBy(
+      'languages.name',
+      'languages.color'
+    )
+
+  const totalContactsContactedSql = knex('detailsContacts')
     .countDistinct('phoneContact')
     .whereNot({ information: WAITING_FEEDBACK })
-    .first()
+  if (idCampaign) totalContactsContactedSql.andWhere('idCampaign', idCampaign)
 
-  const totalContactsAssignByMeWaitingFeedback = await knex('detailsContacts')
+  const totalContactsContacted = await totalContactsContactedSql.first()
+
+  const totalContactsAssignByMeWaitingFeedbackSql = knex('detailsContacts')
     .countDistinct('phoneContact')
     .where({ information: WAITING_FEEDBACK, createdBy: userId })
-    .first()
+  if (idCampaign)
+    totalContactsAssignByMeWaitingFeedbackSql.andWhere('idCampaign', idCampaign)
 
-  const totalContactsWaitingFeedback = await knex('detailsContacts')
+  const totalContactsAssignByMeWaitingFeedback =
+    await totalContactsAssignByMeWaitingFeedbackSql.first()
+
+  const totalContactsWaitingFeedbackSql = knex('detailsContacts')
     .countDistinct('phoneContact')
     .where({ information: WAITING_FEEDBACK })
-    .first()
+  if (idCampaign)
+    totalContactsWaitingFeedbackSql.andWhere('idCampaign', idCampaign)
 
-  const totalsContactsWaitingFeedbackByPublisher = await knex('detailsContacts')
+  const totalContactsWaitingFeedback =
+    await totalContactsWaitingFeedbackSql.first()
+
+  const totalsContactsWaitingFeedbackByPublisherSql = knex('detailsContacts')
     .count('phoneContact as count')
     .select('publishers.name as publisherName')
     .leftJoin('publishers', 'publishers.id', '=', 'detailsContacts.createdBy')
     .where({ information: WAITING_FEEDBACK })
-    .groupBy('publishers.name')
+  if (idCampaign)
+    totalsContactsWaitingFeedbackByPublisherSql.andWhere(
+      'idCampaign',
+      idCampaign
+    )
+
+  const totalsContactsWaitingFeedbackByPublisher =
+    await totalsContactsWaitingFeedbackByPublisherSql.groupBy('publishers.name')
 
   const totalContactsByLocation = await knex(tableName)
     .count('phone')
@@ -307,14 +378,21 @@ const getSummaryTotals = async userId => {
     .leftJoin('departments', 'departments.id', '=', 'cities.idDepartment')
     .groupBy('cities.name', 'departments.name')
 
-  const totalContactsByLocationContacted = await knex('detailsContacts')
+  const totalContactsByLocationContactedSql = knex('detailsContacts')
     .countDistinct('contacts.phone')
     .select('cities.name as locationName', 'departments.name as departmentName')
     .leftJoin('contacts', 'contacts.phone', '=', 'detailsContacts.phoneContact')
     .leftJoin('cities', 'cities.id', '=', 'contacts.idLocation')
     .leftJoin('departments', 'departments.id', '=', 'cities.idDepartment')
     .whereNot({ information: WAITING_FEEDBACK })
-    .groupBy('cities.name', 'departments.name')
+  if (idCampaign)
+    totalContactsByLocationContactedSql.andWhere('idCampaign', idCampaign)
+
+  const totalContactsByLocationContacted =
+    await totalContactsByLocationContactedSql.groupBy(
+      'cities.name',
+      'departments.name'
+    )
 
   return {
     totalContacts,
@@ -329,7 +407,7 @@ const getSummaryTotals = async userId => {
     totalContactsNotCompanyContacted,
     totalContactsByType,
     totalContactsByLocation,
-    totalContactsByLocationContacted
+    totalContactsByLocationContacted,
   }
 }
 
@@ -351,5 +429,5 @@ export {
   getFilters,
   contactsWithSamePhones,
   columnPrimary,
-  fields
+  fields,
 }

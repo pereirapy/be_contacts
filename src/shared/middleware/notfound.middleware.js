@@ -7,7 +7,7 @@ const notFoundHandler = (req, res) => {
     responseError({
       cod: NOT_FOUND,
       message: NOT_FOUND,
-      httpErrorCode: HttpStatus.NOT_FOUND
+      httpErrorCode: HttpStatus.NOT_FOUND,
     })
   )
 }

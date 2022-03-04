@@ -1,4 +1,4 @@
-exports.up = async function(knex) {
+exports.up = async function (knex) {
   await knex.schema.raw(`DROP VIEW "viewListContacts"`)
 
   return knex.schema.raw(`CREATE OR REPLACE VIEW "viewListContacts" AS ?`, [
@@ -46,11 +46,11 @@ exports.up = async function(knex) {
       )
       .whereRaw(`dc.information <> '[WAITING_FEEDBACK]'`)
       .orWhereNull('dc.information')
-      .orderBy('contacts.phone')
+      .orderBy('contacts.phone'),
   ])
 }
 
-exports.down = async function(knex) {
+exports.down = async function (knex) {
   await knex.schema.raw(`DROP VIEW "viewListContacts"`)
 
   return knex.schema.raw(`CREATE OR REPLACE VIEW "viewListContacts" AS ?`, [
@@ -90,6 +90,6 @@ exports.down = async function(knex) {
         ORDER BY "detailsContacts"."createdAt" DESC
         LIMIT 1) as dc ON contacts.phone = dc."phoneContact"`
       )
-      .orderBy('contacts.phone')
+      .orderBy('contacts.phone'),
   ])
 }

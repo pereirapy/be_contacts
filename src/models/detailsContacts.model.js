@@ -1,6 +1,14 @@
 import knex from '../config/connection'
 import crud from './crudGeneric.model'
-import { isNil, isEmpty, map, reduce, concat } from 'lodash/fp'
+import { getDetailsCampaignActive } from './campaigns.model'
+import {
+  isNil,
+  isEmpty,
+  map,
+  reduce,
+  concat,
+  get as getLodash,
+} from 'lodash/fp'
 import { WAITING_FEEDBACK } from '../shared/constants/contacts.constant'
 import { MINISTERIAL_SERVANT } from '../shared/constants/permissions.constant'
 
@@ -12,7 +20,7 @@ const fields = [
   'idPublisher',
   'phoneContact',
   'createdBy',
-  'updatedBy'
+  'updatedBy',
 ]
 
 const getDetailsOneContact = async ({ id, query }) => {
@@ -24,7 +32,11 @@ const getDetailsOneContact = async ({ id, query }) => {
         `"detailsContacts"."information"='${WAITING_FEEDBACK}' as "waitingFeedback"`
       ),
       'detailsContacts.createdAt',
+      'detailsContacts.createdBy',
+      'detailsContacts.updatedAt',
+      'detailsContacts.updatedBy',
       'detailsContacts.idPublisher',
+      'detailsContacts.idCampaign',
       'detailsContacts.id',
       'contacts.name',
       'contacts.owner',
@@ -32,10 +44,28 @@ const getDetailsOneContact = async ({ id, query }) => {
       'contacts.idLocation',
       'contacts.gender',
       'contacts.typeCompany',
-      'publishers.name as publisherName'
+      'publishers.name as publisherName',
+      'publisherCreatedBy.name as publisherCreatedByName',
+      'publisherUpdatedBy.name as publisherUpdatedByName',
+      'campaigns.name as campaignName',
+      'campaigns.dateStart as campaignDateStart',
+      'campaigns.dateFinal as campaignDateFinal'
     )
     .from(tableName)
     .leftJoin('publishers', 'detailsContacts.idPublisher', '=', 'publishers.id')
+    .leftJoin('campaigns', 'detailsContacts.idCampaign', '=', 'campaigns.id')
+    .leftJoin(
+      'publishers as publisherCreatedBy',
+      'detailsContacts.createdBy',
+      '=',
+      'publisherCreatedBy.id'
+    )
+    .leftJoin(
+      'publishers as publisherUpdatedBy',
+      'detailsContacts.updatedBy',
+      '=',
+      'publisherUpdatedBy.id'
+    )
     .leftJoin('contacts', 'detailsContacts.phoneContact', '=', 'contacts.phone')
     .where('phoneContact', '=', id)
 
@@ -45,7 +75,7 @@ const getDetailsOneContact = async ({ id, query }) => {
     const { publisher, details } = JSON.parse(filters)
 
     if (!isEmpty(publisher) && !isEmpty(details)) {
-      sql.where(builder =>
+      sql.where((builder) =>
         builder
           .where('detailsContacts.information', 'ilike', `%${details}%`)
           .orWhere('publishers.name', 'ilike', `%${publisher}%`)
@@ -58,14 +88,14 @@ const getDetailsOneContact = async ({ id, query }) => {
   return sql
 }
 
-const getDetailsIsWaitingFeedbackOneContact = async phoneContact =>
+const getDetailsIsWaitingFeedbackOneContact = async (phoneContact) =>
   knex
     .select('detailsContacts.id')
     .from(tableName)
     .where('phoneContact', '=', phoneContact)
     .where('information', WAITING_FEEDBACK)
 
-const getIDLastDetailsContactOneContact = async phoneContact =>
+const getIDLastDetailsContactOneContact = async (phoneContact) =>
   knex
     .select('id')
     .from(tableName)
@@ -73,11 +103,13 @@ const getIDLastDetailsContactOneContact = async phoneContact =>
     .orderBy('id', 'desc')
     .first()
 
-const getOne = async id =>
+const getOne = async (id) =>
   knex
     .select(
       'detailsContacts.*',
       'publishers.name as publisherName',
+      'publisherUpdatedBy.name as publisherUpdatedBy',
+      'publisherCreatedBy.name as publisherCreatedBy',
       'contacts.idStatus',
       'contacts.idLanguage',
       'contacts.idLocation',
@@ -88,6 +120,18 @@ const getOne = async id =>
     )
     .from(tableName)
     .leftJoin('publishers', 'detailsContacts.idPublisher', '=', 'publishers.id')
+    .leftJoin(
+      'publishers as publisherUpdatedBy',
+      'detailsContacts.updatedBy',
+      '=',
+      'publisherUpdatedBy.id'
+    )
+    .leftJoin(
+      'publishers as publisherCreatedBy',
+      'detailsContacts.createdBy',
+      '=',
+      'publisherCreatedBy.id'
+    )
     .leftJoin('contacts', 'detailsContacts.phoneContact', '=', 'contacts.phone')
     .where('detailsContacts.id', id)
     .first()
@@ -101,6 +145,8 @@ const getDetailsAllContact = async () =>
 const getDetailsAllContactWaitingFeedback = async ({ query, user }) => {
   const { sort, perPage, currentPage, filters } = query
   const { idResponsibility } = user
+  const campaign = await getDetailsCampaignActive()
+
   const sql = knex
     .select(
       'id',
@@ -119,12 +165,21 @@ const getDetailsAllContactWaitingFeedback = async ({ query, user }) => {
       'idLanguage',
       'phone',
       'typeCompany',
-      'waitingFeedback'
+      'createdAtDetailsContacts',
+      'waitingFeedback',
+      'idCampaign',
+      'campaignName',
+      'campaignDateStart',
+      'campaignDateFinal'
     )
     .from('viewListContactsWaitingFeedback')
 
+  sql.whereNotNull('phone')
+
+  if (campaign) sql.andWhere('idCampaign', campaign.id)
+
   if (idResponsibility < MINISTERIAL_SERVANT) {
-    sql.where(builder =>
+    sql.andWhere((builder) =>
       builder.where('createdBy', user.id).orWhere('idPublisher', user.id)
     )
   }
@@ -141,7 +196,7 @@ const getDetailsAllContactWaitingFeedback = async ({ query, user }) => {
       languages,
       status,
       typeCompany,
-      publishersResponsibles
+      publishersResponsibles,
     } = JSON.parse(filters)
 
     if (
@@ -152,7 +207,7 @@ const getDetailsAllContactWaitingFeedback = async ({ query, user }) => {
       !isEmpty(responsible) &&
       !isEmpty(note)
     ) {
-      sql.where(builder =>
+      sql.andWhere((builder) =>
         builder
           .where('contactName', 'ilike', `%${name}%`)
           .orWhere('owner', 'ilike', `%${owner}%`)
@@ -161,22 +216,22 @@ const getDetailsAllContactWaitingFeedback = async ({ query, user }) => {
           .orWhere('publisherName', 'ilike', `%${responsible}%`)
       )
     }
-    if (!isEmpty(genders)) sql.andWhere(qB => qB.whereIn('gender', genders))
+    if (!isEmpty(genders)) sql.andWhere((qB) => qB.whereIn('gender', genders))
 
     if (!isEmpty(languages))
-      sql.andWhere(qB => qB.whereIn('idLanguage', languages))
+      sql.andWhere((qB) => qB.whereIn('idLanguage', languages))
 
-    if (!isEmpty(status)) sql.andWhere(qB => qB.whereIn('idStatus', status))
+    if (!isEmpty(status)) sql.andWhere((qB) => qB.whereIn('idStatus', status))
     if (!isEmpty(publishersResponsibles))
-      sql.andWhere(qB => qB.whereIn('createdBy', publishersResponsibles))
+      sql.andWhere((qB) => qB.whereIn('createdBy', publishersResponsibles))
 
     if (typeCompany !== '-1')
-      sql.andWhere(qB => qB.where('typeCompany', typeCompany))
+      sql.andWhere((qB) => qB.where('typeCompany', typeCompany))
   }
   return sql.orderByRaw(crud.parseOrderBy(sort)).paginate(perPage, currentPage)
 }
 
-const getGenders = async user => {
+const getGenders = async (user) => {
   const sql = knex
     .count('gender')
     .select('gender')
@@ -186,7 +241,7 @@ const getGenders = async user => {
     .groupBy('gender')
 
   if (user.idResponsibility < MINISTERIAL_SERVANT) {
-    sql.where(builder =>
+    sql.where((builder) =>
       builder
         .where('detailsContacts.createdBy', user.id)
         .orWhere('detailsContacts.idPublisher', user.id)
@@ -195,7 +250,29 @@ const getGenders = async user => {
   return sql
 }
 
-const getLanguages = async user => {
+const getCampaigns = async (user) => {
+  const sql = knex
+    .count('detailsContacts.idCampaign')
+    .select('detailsContacts.idCampaign', 'campaigns.name as campaignName')
+    .from(tableName)
+    .leftJoin('contacts', 'detailsContacts.phoneContact', '=', 'contacts.phone')
+    .leftJoin('campaigns', 'campaigns.id', '=', 'detailsContacts.idCampaign')
+    .where('detailsContacts.information', WAITING_FEEDBACK)
+    .whereNotNull('detailsContacts.idCampaign')
+    .groupBy('detailsContacts.idCampaign', 'campaigns.name')
+
+  if (user.idResponsibility < MINISTERIAL_SERVANT) {
+    sql.where((builder) =>
+      builder
+        .where('detailsContacts.createdBy', user.id)
+        .orWhere('detailsContacts.idPublisher', user.id)
+    )
+  }
+  sql.orderBy('campaigns.name')
+
+  return sql
+}
+const getLanguages = async (user) => {
   const sql = knex
     .count('idLanguage')
     .select('idLanguage', 'languages.name as languageName')
@@ -206,7 +283,7 @@ const getLanguages = async user => {
     .groupBy('idLanguage', 'languages.name')
 
   if (user.idResponsibility < MINISTERIAL_SERVANT) {
-    sql.where(builder =>
+    sql.where((builder) =>
       builder
         .where('detailsContacts.createdBy', user.id)
         .orWhere('detailsContacts.idPublisher', user.id)
@@ -217,7 +294,7 @@ const getLanguages = async user => {
   return sql
 }
 
-const getStatus = async user => {
+const getStatus = async (user) => {
   const sql = knex
     .count('idStatus')
     .select('idStatus', 'status.description as statusDescription')
@@ -228,7 +305,7 @@ const getStatus = async user => {
     .groupBy('idStatus', 'status.description')
 
   if (user.idResponsibility < MINISTERIAL_SERVANT) {
-    sql.where(builder =>
+    sql.where((builder) =>
       builder
         .where('detailsContacts.createdBy', user.id)
         .orWhere('detailsContacts.idPublisher', user.id)
@@ -238,7 +315,7 @@ const getStatus = async user => {
 
   return sql
 }
-const getPublishersResponsibles = async user => {
+const getPublishersResponsibles = async (user) => {
   const sql = knex
     .count('detailsContacts.createdBy')
     .select(
@@ -252,7 +329,7 @@ const getPublishersResponsibles = async user => {
     .groupBy('detailsContacts.createdBy', 'publishers.name')
 
   if (user.idResponsibility < MINISTERIAL_SERVANT) {
-    sql.where(builder =>
+    sql.where((builder) =>
       builder
         .where('detailsContacts.createdBy', user.id)
         .orWhere('detailsContacts.idPublisher', user.id)
@@ -262,7 +339,7 @@ const getPublishersResponsibles = async user => {
   return sql
 }
 
-const getType = async user => {
+const getType = async (user) => {
   const sql = knex
     .count('typeCompany')
     .select('typeCompany as typeCompanySelected')
@@ -271,7 +348,7 @@ const getType = async user => {
     .groupBy('typeCompany')
 
   if (user.idResponsibility < MINISTERIAL_SERVANT) {
-    sql.where(builder =>
+    sql.where((builder) =>
       builder
         .where('detailsContacts.createdBy', user.id)
         .orWhere('detailsContacts.idPublisher', user.id)
@@ -287,12 +364,12 @@ const getType = async user => {
   )
   const typeCompany = concat(isTypeCompany, {
     count: typeBoth,
-    typeCompanySelected: '-1'
+    typeCompanySelected: '-1',
   })
   return map(
-    option => ({
+    (option) => ({
       ...option,
-      typeCompanySelected: String(Number(option.typeCompanySelected))
+      typeCompanySelected: String(Number(option.typeCompanySelected)),
     }),
     typeCompany
   )
@@ -301,14 +378,22 @@ const getType = async user => {
 const getFiltersWaitingFeedback = async ({ user }) => {
   const genders = await getGenders(user)
   const languages = await getLanguages(user)
+  const campaigns = await getCampaigns(user)
   const status = await getStatus(user)
   const publishersResponsibles = await getPublishersResponsibles(user)
   const typeCompany = await getType(user)
 
-  return { genders, languages, status, publishersResponsibles, typeCompany }
+  return {
+    genders,
+    languages,
+    campaigns,
+    status,
+    publishersResponsibles,
+    typeCompany,
+  }
 }
 
-const createRecord = async data => crud.createRecord(data, tableName)
+const createRecord = async (data) => crud.createRecord(data, tableName)
 
 const updateRecord = async ({ id, data }) =>
   crud.updateRecord({ id, data, tableName, columnPrimary })
@@ -316,15 +401,28 @@ const updateRecord = async ({ id, data }) =>
 const updateRecords = async ({ where, data }) =>
   crud.updateRecords({ data, tableName, where })
 
-const deleteRecord = async id =>
+const updateIsLastValueOneContact = async (
+  trueOrFalse = true,
+  phoneContact
+) => {
+  const data = await getIDLastDetailsContactOneContact(phoneContact)
+
+  if (!data) return phoneContact
+  return crud.updateRecord({
+    id: getLodash('id', data),
+    data: { isLast: trueOrFalse },
+    tableName,
+    columnPrimary,
+  })
+}
+
+const deleteRecord = async (id) =>
   crud.deleteRecord({ id, tableName, columnPrimary })
 
-const deleteRecords = async where => crud.deleteRecords({ where, tableName })
+const deleteRecords = async (where) => crud.deleteRecords({ where, tableName })
 
-const deleteRecordByPhone = phone =>
-  knex(tableName)
-    .where('phoneContact', '=', phone)
-    .delete()
+const deleteRecordByPhone = (phone) =>
+  knex(tableName).where('phoneContact', '=', phone).delete()
 
 export {
   getOne,
@@ -340,6 +438,7 @@ export {
   deleteRecord,
   deleteRecords,
   deleteRecordByPhone,
+  updateIsLastValueOneContact,
   columnPrimary,
-  fields
+  fields,
 }

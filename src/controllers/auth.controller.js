@@ -1,14 +1,14 @@
 import HttpStatus from 'http-status-codes'
 import {
   responseNext,
-  responseError
+  responseError,
 } from '../shared/helpers/responseGeneric.helper'
 import { getRecordForAuth, omitColumns } from '../models/publishers.model'
 import publisherService from '../services/publishers.service'
 import {
   NO_EMAIL_VALID,
   PASSWORD_WRONG,
-  NOT_ACTIVE
+  NOT_ACTIVE,
 } from '../shared/constants/publishers.constant'
 import { AUTHORIZED } from '../shared/constants/security.constant'
 import { getOr, get, omit } from 'lodash/fp'
@@ -24,7 +24,7 @@ const authenticate = async (req, res, next) => {
         responseError({
           cod: NO_EMAIL_VALID,
           error: NO_EMAIL_VALID,
-          httpErrorCode: HttpStatus.UNAUTHORIZED
+          httpErrorCode: HttpStatus.UNAUTHORIZED,
         })
       )
     }
@@ -33,7 +33,7 @@ const authenticate = async (req, res, next) => {
         responseError({
           cod: PASSWORD_WRONG,
           error: PASSWORD_WRONG,
-          httpErrorCode: HttpStatus.UNAUTHORIZED
+          httpErrorCode: HttpStatus.UNAUTHORIZED,
         })
       )
     }
@@ -43,7 +43,7 @@ const authenticate = async (req, res, next) => {
         responseError({
           cod: NOT_ACTIVE,
           error: NOT_ACTIVE,
-          httpErrorCode: HttpStatus.UNAUTHORIZED
+          httpErrorCode: HttpStatus.UNAUTHORIZED,
         })
       )
     }
@@ -56,11 +56,11 @@ const authenticate = async (req, res, next) => {
   }
 }
 
-const jwtSignIn = publisher => {
+const jwtSignIn = (publisher) => {
   const jwtToken = createJwtToken({
     email: get('email', publisher),
     id: get('id', publisher),
-    idResponsibility: get('idResponsibility', publisher)
+    idResponsibility: get('idResponsibility', publisher),
   })
   const publisherDataPublic = omit(omitColumns, publisher)
   return {
@@ -68,8 +68,8 @@ const jwtSignIn = publisher => {
     cod: AUTHORIZED,
     data: {
       ...publisherDataPublic,
-      jwtToken
-    }
+      jwtToken,
+    },
   }
 }
 

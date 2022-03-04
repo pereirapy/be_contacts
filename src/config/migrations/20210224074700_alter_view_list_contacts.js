@@ -1,4 +1,4 @@
-exports.up = function(knex) {
+exports.up = function (knex) {
   return knex.schema.raw(`CREATE OR REPLACE VIEW "viewListContacts" AS ?`, [
     knex
       .select(
@@ -36,10 +36,10 @@ exports.up = function(knex) {
         ORDER BY "detailsContacts"."createdAt" DESC
         LIMIT 1) as dc ON contacts.phone = dc."phoneContact"`
       )
-      .orderBy('contacts.phone')
+      .orderBy('contacts.phone'),
   ])
 }
 
-exports.down = function(knex) {
+exports.down = function (knex) {
   return knex.schema.raw(`DROP VIEW "viewListContacts"`)
 }

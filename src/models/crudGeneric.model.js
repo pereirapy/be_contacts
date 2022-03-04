@@ -7,7 +7,7 @@ import {
   last,
   includes,
   trim,
-  replace
+  replace,
 } from 'lodash/fp'
 import { fieldsNoTypeText } from '../shared/constants/db.constant'
 
@@ -21,42 +21,29 @@ const getAll = async (tableName, queryParams = {}) => {
 }
 
 const getOneRecord = async ({ id, tableName, columnPrimary }) =>
-  knex
-    .select()
-    .from(tableName)
-    .where(columnPrimary, '=', id)
-    .first()
+  knex.select().from(tableName).where(columnPrimary, '=', id).first()
 
 const getAllWithWhere = async ({ tableName, where, sort }) => {
-  const sql = knex
-    .select()
-    .from(tableName)
-    .where(where)
+  const sql = knex.select().from(tableName).where(where)
   if (sort) sql.orderByRaw(parseOrderBy(sort))
   return sql
 }
 
 const getOneWithWhere = async ({ tableName, where }) =>
-  knex
-    .select()
-    .from(tableName)
-    .where(where)
-    .first()
+  knex.select().from(tableName).where(where).first()
 
 const createRecord = async (data, tableName) =>
-  await knex(tableName)
-    .returning('*')
-    .insert(data)
+  await knex(tableName).returning('*').insert(data)
 
 const prepareDataUpdated = (id, data) => ({
   totalAffected: data.length,
   id,
-  data
+  data,
 })
 
-const prepareDataUpdatedWithoutId = data => ({
+const prepareDataUpdatedWithoutId = (data) => ({
   totalAffected: data.length,
-  data
+  data,
 })
 
 const updateRecord = async ({ id, data, tableName, columnPrimary }) =>
@@ -69,44 +56,36 @@ const updateRecord = async ({ id, data, tableName, columnPrimary }) =>
 
 const updateRecords = async ({ data, tableName, where }) =>
   prepareDataUpdatedWithoutId(
-    await knex(tableName)
-      .update(data, Object.keys(data))
-      .where(where)
+    await knex(tableName).update(data, Object.keys(data)).where(where)
   )
 
 const prepareDataDeleted = (id, totalAffected) => ({
   totalAffected,
-  id
+  id,
 })
 
-const prepareDataDeletedWithoutId = totalAffected => ({
-  totalAffected
+const prepareDataDeletedWithoutId = (totalAffected) => ({
+  totalAffected,
 })
 
 const deleteRecord = async ({ id, tableName, columnPrimary }) =>
   prepareDataDeleted(
     id,
-    await knex(tableName)
-      .where(columnPrimary, id)
-      .delete()
+    await knex(tableName).where(columnPrimary, id).delete()
   )
 
 const deleteRecords = async ({ where, tableName }) =>
-  prepareDataDeletedWithoutId(
-    await knex(tableName)
-      .where(where)
-      .delete()
-  )
+  prepareDataDeletedWithoutId(await knex(tableName).where(where).delete())
 
-const canUpperThisColumn = column =>
-  pipe(split('.'), last, replace(/"/gi, ''), data => {
+const canUpperThisColumn = (column) =>
+  pipe(split('.'), last, replace(/"/gi, ''), (data) => {
     return !includes(data, fieldsNoTypeText)
   })(column)
 
-const parseOrderBy = sort =>
+const parseOrderBy = (sort) =>
   pipe(
     split(','),
-    map(field => {
+    map((field) => {
       const arrayField = split(':', field)
       const column = trim(head(arrayField))
       const order = trim(last(arrayField))
@@ -130,5 +109,5 @@ export default {
   getOneRecord,
   parseOrderBy,
   getAllWithWhere,
-  getOneWithWhere
+  getOneWithWhere,
 }

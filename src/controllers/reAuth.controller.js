@@ -1,12 +1,12 @@
 import HttpStatus from 'http-status-codes'
 import {
   responseNext,
-  responseError
+  responseError,
 } from '../shared/helpers/responseGeneric.helper'
 import { getRecordForAuth } from '../models/publishers.model'
 import {
   NO_EMAIL_VALID,
-  NOT_ACTIVE
+  NOT_ACTIVE,
 } from '../shared/constants/publishers.constant'
 import { getOr } from 'lodash/fp'
 import authController from './auth.controller'
@@ -22,7 +22,7 @@ const reAuthenticate = async (req, res, next) => {
         responseError({
           cod: NO_EMAIL_VALID,
           error: NO_EMAIL_VALID,
-          httpErrorCode: HttpStatus.UNAUTHORIZED
+          httpErrorCode: HttpStatus.UNAUTHORIZED,
         })
       )
     }
@@ -32,7 +32,7 @@ const reAuthenticate = async (req, res, next) => {
         responseError({
           cod: NOT_ACTIVE,
           error: NOT_ACTIVE,
-          httpErrorCode: HttpStatus.UNAUTHORIZED
+          httpErrorCode: HttpStatus.UNAUTHORIZED,
         })
       )
     }

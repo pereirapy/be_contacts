@@ -6,13 +6,13 @@ const tableName = 'responsibility'
 const columnPrimary = 'id'
 const fields = ['description']
 
-const getAllAllowedForMe = async queryParams =>
+const getAllAllowedForMe = async (queryParams) =>
   knex
     .select()
     .from(tableName)
     .where(columnPrimary, '<=', getOr(0, 'user.idResponsibility', queryParams))
     .orderBy(columnPrimary)
 
-const getAll = async queryParams => crud.getAll(tableName, queryParams)
+const getAll = async (queryParams) => crud.getAll(tableName, queryParams)
 
 export { getAllAllowedForMe, fields, getAll }

@@ -4,7 +4,7 @@ import {
   GET_OK,
   POST_OK,
   PUT_OK,
-  DEL_OK
+  DEL_OK,
 } from '../shared/constants/db.constant'
 
 describe('Service Publishers', () => {
@@ -14,7 +14,7 @@ describe('Service Publishers', () => {
     expect(data).toEqual({
       cod: 'GET_SUCCESSFUL',
       data: [],
-      status: true
+      status: true,
     })
   })
 
@@ -33,10 +33,10 @@ describe('Service Publishers', () => {
           createdAt: new Date('2020-08-31T13:59:35.232Z'),
           hash: null,
           createdBy: request.user.id,
-          updatedBy: null
-        }
+          updatedBy: null,
+        },
       ],
-      status: true
+      status: true,
     })
   })
 
@@ -44,7 +44,7 @@ describe('Service Publishers', () => {
     const request = {
       user: { id: 1, idResponsibility: 4 },
       method: 'GET',
-      params: { id: 1 }
+      params: { id: 1 },
     }
     const data = await publisherService.getOne(request)
     expect(data).toEqual({
@@ -58,9 +58,9 @@ describe('Service Publishers', () => {
         createdAt: new Date('2020-08-31T13:59:35.232Z'),
         hash: null,
         createdBy: request.user.id,
-        updatedBy: null
+        updatedBy: null,
       },
-      status: true
+      status: true,
     })
   })
 
@@ -72,15 +72,15 @@ describe('Service Publishers', () => {
         name: 'test',
         email: 'test@example.com',
         idResponsibility: 1,
-        password: 'test'
-      }
+        password: 'test',
+      },
     }
     try {
       await publisherService.create(request)
     } catch (error) {
       expect(error).toEqual({
         error: 'ERROR_PASSWORD_MINIMUM_LENGTH',
-        httpErrorCode: 400
+        httpErrorCode: 400,
       })
     }
   })
@@ -93,15 +93,15 @@ describe('Service Publishers', () => {
         name: 'test',
         email: 'test@example.com',
         idResponsibility: 1,
-        password: 'testtest'
-      }
+        password: 'testtest',
+      },
     }
     try {
       await publisherService.create(request)
     } catch (error) {
       expect(error).toEqual({
         error: 'ERROR_PASSWORD_UPPERCASE_LETTER',
-        httpErrorCode: 400
+        httpErrorCode: 400,
       })
     }
   })
@@ -114,15 +114,15 @@ describe('Service Publishers', () => {
         name: 'test',
         email: 'test@example.com',
         idResponsibility: 1,
-        password: 'Testtest'
-      }
+        password: 'Testtest',
+      },
     }
     try {
       await publisherService.create(request)
     } catch (error) {
       expect(error).toEqual({
         error: 'ERROR_PASSWORD_NUMBER',
-        httpErrorCode: 400
+        httpErrorCode: 400,
       })
     }
   })
@@ -135,15 +135,15 @@ describe('Service Publishers', () => {
         name: 'test',
         email: 'test@example.com',
         idResponsibility: 1,
-        password: 'T1esttest'
-      }
+        password: 'T1esttest',
+      },
     }
     try {
       await publisherService.create(request)
     } catch (error) {
       expect(error).toEqual({
         error: 'ERROR_PASSWORD_SPECIAL_CHARACTER',
-        httpErrorCode: 400
+        httpErrorCode: 400,
       })
     }
   })
@@ -156,20 +156,20 @@ describe('Service Publishers', () => {
       password: 'T1:esttest',
       active: true,
       createdAt: new Date('2020-08-31T13:59:35.232Z'),
-      hash: null
+      hash: null,
     }
     const response = {
       cod: POST_OK,
       status: true,
       data: [
-        { id: 2, createdBy: 1, updatedBy: null, ...omit('password', payload) }
-      ]
+        { id: 2, createdBy: 1, updatedBy: null, ...omit('password', payload) },
+      ],
     }
 
     const request = {
       user: { id: 1, idResponsibility: 4 },
       method: 'POST',
-      body: payload
+      body: payload,
     }
     const data = await publisherService.create(request)
     expect(data).toEqual(response)
@@ -182,7 +182,7 @@ describe('Service Publishers', () => {
       email: 'test@example.com',
       idResponsibility: 1,
       password: 'T1:esttest',
-      active: true
+      active: true,
     }
     const response = {
       cod: PUT_OK,
@@ -192,19 +192,19 @@ describe('Service Publishers', () => {
           {
             id: payload.id,
             updatedBy: 1,
-            ...omit('password', payload)
-          }
+            ...omit('password', payload),
+          },
         ],
         id: payload.id,
-        totalAffected: 1
-      }
+        totalAffected: 1,
+      },
     }
 
     const request = {
       user: { id: 1, idResponsibility: 4 },
       method: 'PUT',
       body: payload,
-      params: { id: payload.id }
+      params: { id: payload.id },
     }
     const data = await publisherService.update(request)
     expect(data).toEqual(response)
@@ -217,21 +217,21 @@ describe('Service Publishers', () => {
       email: 'test@example.com',
       idResponsibility: 1,
       password: 'T1esttest',
-      active: true
+      active: true,
     }
 
     const request = {
       user: { id: 1, idResponsibility: 4 },
       method: 'PUT',
       body: payload,
-      params: { id: payload.id }
+      params: { id: payload.id },
     }
     try {
       await publisherService.update(request)
     } catch (error) {
       expect(error).toEqual({
         error: 'ERROR_PASSWORD_SPECIAL_CHARACTER',
-        httpErrorCode: 400
+        httpErrorCode: 400,
       })
     }
   })
@@ -240,13 +240,13 @@ describe('Service Publishers', () => {
     const response = {
       cod: DEL_OK,
       data: { id: 2, totalAffected: 1 },
-      status: true
+      status: true,
     }
 
     const request = {
       user: { id: 1, idResponsibility: 4 },
       method: 'DELETE',
-      params: { id: 2 }
+      params: { id: 2 },
     }
     const data = await publisherService.deleteOne(request)
     expect(data).toEqual(response)

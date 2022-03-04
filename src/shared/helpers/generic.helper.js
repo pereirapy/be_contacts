@@ -3,43 +3,49 @@ import jwt from 'jsonwebtoken'
 import { JWT_SECRET } from '../constants/security.constant'
 import crypto from 'crypto'
 
-const getParamsForUpdate = request => ({
+const getParamsForUpdate = (request) => ({
   data: appendEssentialData(request, 'updatedBy'),
-  id: get('params.id', request)
+  id: get('params.id', request),
 })
 
-const getParamsForGet = request => get('query', request)
-const getParamsForGetWithUser = request => ({
+const getParamsForGet = (request) => get('query', request)
+
+const getParamsForGetWithUser = (request) => ({
   query: get('query', request),
-  user: get('user', request)
+  user: get('user', request),
 })
-const getParamsForCreate = request => appendEssentialData(request, 'createdBy')
-const getParamsForGetOne = request => get('params.id', request)
-const getParamsForGetOneWithUser = request => ({
+const getParamsForCreate = (request) =>
+  appendEssentialData(request, 'createdBy')
+
+const getParamsForGetOne = (request) => get('params.id', request)
+
+const getParamsForGetOneWithUser = (request) => ({
   id: get('params.id', request),
-  user: get('user', request)
+  user: get('user', request),
 })
-const getParamsForGetOneWithQuery = request => ({
+const getParamsForGetOneWithQuery = (request) => ({
   id: get('params.id', request),
-  query: get('query', request)
+  query: get('query', request),
 })
-const getParamsForDelete = request => getParamsForGetOne(request)
+
+const getParamsForDelete = (request) => getParamsForGetOne(request)
 
 const defaultValueForQuery = (request, objectDefault) => {
   return { ...objectDefault, ...getParamsForGet(request) }
 }
-const createJwtToken = param =>
+const createJwtToken = (param) =>
   jwt.sign(param, process.env.JWT_KEY || JWT_SECRET)
 
 const appendEssentialData = (request, field) =>
   isArray(get('body', request))
     ? map(
-        data => ({ ...data, [field]: get('user.id', request) }),
+        (data) => ({ ...data, [field]: get('user.id', request) }),
         get('body', request)
       )
     : { ...get('body', request), [field]: get('user.id', request) }
 
-const encrypt = password => crypto.createHmac('sha256', password).digest('hex')
+const encrypt = (password) =>
+  crypto.createHmac('sha256', password).digest('hex')
 
 export {
   getParamsForGet,
@@ -52,5 +58,5 @@ export {
   encrypt,
   getParamsForGetOneWithUser,
   getParamsForGetOneWithQuery,
-  getParamsForGetWithUser
+  getParamsForGetWithUser,
 }

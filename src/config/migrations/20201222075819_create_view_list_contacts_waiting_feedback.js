@@ -1,4 +1,4 @@
-exports.up = function(knex) {
+exports.up = function (knex) {
   return knex.schema.raw(`CREATE VIEW "viewListContactsWaitingFeedback" AS ?`, [
     knex
       .select(
@@ -44,10 +44,10 @@ exports.up = function(knex) {
       )
       .leftJoin('languages', 'languages.id', '=', 'contacts.idLanguage')
       .leftJoin('status', 'status.id', '=', 'contacts.idStatus')
-      .where('detailsContacts.information', knex.raw(`'[WAITING_FEEDBACK]'`))
+      .where('detailsContacts.information', knex.raw(`'[WAITING_FEEDBACK]'`)),
   ])
 }
 
-exports.down = function(knex) {
+exports.down = function (knex) {
   return knex.schema.raw(`DROP VIEW "viewListContactsWaitingFeedback"`)
 }

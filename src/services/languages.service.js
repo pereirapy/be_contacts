@@ -2,38 +2,38 @@ const {
   getAll,
   createRecord,
   updateRecord,
-  deleteRecord
+  deleteRecord,
 } = require('../models/languages.model')
 import {
   getParamsForUpdate,
   getParamsForCreate,
   getParamsForDelete,
-  defaultValueForQuery
+  defaultValueForQuery,
 } from '../shared/helpers/generic.helper'
 import { responseSuccess } from '../shared/helpers/responseGeneric.helper'
 import asyncPipe from 'pipeawait'
 import { curry } from 'lodash/fp'
 
-const get = async request => {
+const get = async (request) => {
   const paramsQuery = defaultValueForQuery(request, {
-    sort: 'name:asc'
+    sort: 'name:asc',
   })
   return asyncPipe(getAll, curry(responseSuccess)(request))(paramsQuery)
 }
 
-const create = async request =>
+const create = async (request) =>
   asyncPipe(
     createRecord,
     curry(responseSuccess)(request)
   )(getParamsForCreate(request))
 
-const update = async request =>
+const update = async (request) =>
   asyncPipe(
     updateRecord,
     curry(responseSuccess)(request)
   )(getParamsForUpdate(request))
 
-const deleteOne = async request =>
+const deleteOne = async (request) =>
   asyncPipe(
     deleteRecord,
     curry(responseSuccess)(request)

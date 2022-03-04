@@ -4,7 +4,7 @@ import { responseError } from '../helpers/responseGeneric.helper'
 import {
   UNAUTHORIZED,
   NO_TOKEN,
-  JWT_SECRET
+  JWT_SECRET,
 } from '../constants/security.constant'
 
 const authGuard = (req, res, next) => {
@@ -16,7 +16,7 @@ const authGuard = (req, res, next) => {
         responseError({
           cod: NO_TOKEN,
           message: NO_TOKEN,
-          httpErrorCode: HttpStatus.UNAUTHORIZED
+          httpErrorCode: HttpStatus.UNAUTHORIZED,
         })
       )
     }
@@ -35,7 +35,7 @@ const authGuard = (req, res, next) => {
       responseError({
         cod: UNAUTHORIZED,
         httpErrorCode: HttpStatus.UNAUTHORIZED,
-        error
+        error,
       })
     )
   }

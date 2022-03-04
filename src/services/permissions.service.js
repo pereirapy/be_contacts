@@ -6,13 +6,13 @@ import {
   createRecord,
   updateRecord,
   deleteRecord,
-  putFields
+  putFields,
 } from '../models/permissions.model'
 import {
   getParamsForUpdate,
   getParamsForCreate,
   getParamsForDelete,
-  defaultValueForQuery
+  defaultValueForQuery,
 } from '../shared/helpers/generic.helper'
 import { responseSuccess } from '../shared/helpers/responseGeneric.helper'
 import asyncPipe from 'pipeawait'
@@ -22,7 +22,7 @@ import { getRecordForAuth } from '../models/publishers.model'
 import { ADMIN } from '../shared/constants/permissions.constant'
 import {
   NO_PERMISSION_ENOUGH,
-  HAVE_TO_REAUTHENTICATE
+  HAVE_TO_REAUTHENTICATE,
 } from '../shared/constants/security.constant'
 
 const hasPermission = async (userIdResponsibility, page, method) => {
@@ -33,12 +33,12 @@ const hasPermission = async (userIdResponsibility, page, method) => {
   return userIdResponsibility >= idMinimumResponsibilityRequired
 }
 
-const haveToReAuthenticate = async userId => {
+const haveToReAuthenticate = async (userId) => {
   const { haveToReauthenticate } = await getRecordForAuth(userId, 'id')
   return Boolean(haveToReauthenticate)
 }
 
-const checkPermissions = async req => {
+const checkPermissions = async (req) => {
   const { user, query, method, baseUrl } = req
   const page = baseUrl.slice(1)
   const reAuthenticate = await haveToReAuthenticate(user.id)
@@ -55,32 +55,32 @@ const checkPermissions = async req => {
   }
 }
 
-const get = async request => {
+const get = async (request) => {
   const paramsQuery = defaultValueForQuery(request, {
-    sort: 'page:asc'
+    sort: 'page:asc',
   })
   return asyncPipe(getAll, curry(responseSuccess)(request))(paramsQuery)
 }
 
-const create = async request =>
+const create = async (request) =>
   asyncPipe(
     createRecord,
     curry(responseSuccess)(request)
   )(getParamsForCreate(request))
 
-const filterWhatCanUpdate = obj => ({
+const filterWhatCanUpdate = (obj) => ({
   ...obj,
-  data: pick(putFields, getLodash('data', obj))
+  data: pick(putFields, getLodash('data', obj)),
 })
 
-const update = async request =>
+const update = async (request) =>
   asyncPipe(
     filterWhatCanUpdate,
     updateRecord,
     curry(responseSuccess)(request)
   )(getParamsForUpdate(request))
 
-const verifyIfCanDelete = async id => {
+const verifyIfCanDelete = async (id) => {
   const permissionWantDelete = await getOneWithWhere({ id })
   if (getLodash('page', permissionWantDelete) === 'permissions') {
     throw NOT_ALLOWED_DELETE
@@ -88,7 +88,7 @@ const verifyIfCanDelete = async id => {
   return id
 }
 
-const deleteOne = async request =>
+const deleteOne = async (request) =>
   asyncPipe(
     verifyIfCanDelete,
     deleteRecord,
@@ -102,5 +102,5 @@ export default {
   update,
   deleteOne,
   haveToReAuthenticate,
-  checkPermissions
+  checkPermissions,
 }

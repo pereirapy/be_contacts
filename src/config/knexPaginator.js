@@ -9,8 +9,8 @@ try {
   KnexQueryBuilder = require('knex/lib/query/builder')
 }
 
-const setupKnexPaginator = function(knex) {
-  KnexQueryBuilder.prototype.paginate = async function(
+const setupKnexPaginator = function (knex) {
+  KnexQueryBuilder.prototype.paginate = async function (
     perPage = 10,
     currentPage = 1,
     getTotals = true
@@ -25,18 +25,14 @@ const setupKnexPaginator = function(knex) {
 
     const [count, result] = await Promise.all([
       getTotals
-        ? this.clone()
-            .clearOrder()
-            .clearSelect()
-            .count('* as total')
-            .first()
+        ? this.clone().clearOrder().clearSelect().count('* as total').first()
         : Promise.resolve(),
-      this.offset(offset).limit(perPage)
+      this.offset(offset).limit(perPage),
     ])
     const totals = getTotals
       ? {
           totalRows: Number(count.total),
-          lastPage: Math.ceil(count.total / perPage)
+          lastPage: Math.ceil(count.total / perPage),
         }
       : {}
 
@@ -44,12 +40,12 @@ const setupKnexPaginator = function(knex) {
       perPage,
       currentPage,
       from: currentPage - 1,
-      to: currentPage + 1
+      to: currentPage + 1,
     }
 
     return {
       list: result,
-      pagination: { ...basicPagination, ...totals }
+      pagination: { ...basicPagination, ...totals },
     }
   }
 

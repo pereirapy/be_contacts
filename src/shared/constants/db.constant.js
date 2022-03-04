@@ -6,8 +6,18 @@ const PUT_OK = 'UPDATE_SUCCESSFUL'
 const PUT_ERROR = 'ERROR_WHILE_UPDATE'
 const DEL_OK = 'DELETED_SUCCESSFUL'
 const DEL_ERROR = 'ERROR_WHILE_DELETING'
+const URL_DROPBOX = 'https://content.dropboxapi.com/2/files/upload'
 
-const fieldsNoTypeText = ['createdAt', 'lastConversationInDays']
+const fieldsNoTypeText = [
+  'createdAt',
+  'lastConversationInDays',
+  'active',
+  'idStatus',
+  'dateStart',
+  'campaignDateStart',
+  'dateFinal',
+  'campaignDateFinal',
+]
 
 export {
   GET_OK,
@@ -18,5 +28,6 @@ export {
   PUT_ERROR,
   DEL_OK,
   DEL_ERROR,
-  fieldsNoTypeText
+  fieldsNoTypeText,
+  URL_DROPBOX,
 }

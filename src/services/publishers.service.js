@@ -7,7 +7,7 @@ const {
   createRecord,
   updateRecord,
   deleteRecord,
-  omitColumns
+  omitColumns,
 } = require('../models/publishers.model')
 import { responseSuccess } from '../shared/helpers/responseGeneric.helper'
 import {
@@ -16,7 +16,7 @@ import {
   getParamsForGetOne,
   getParamsForGet,
   getParamsForDelete,
-  defaultValueForQuery
+  defaultValueForQuery,
 } from '../shared/helpers/generic.helper'
 import asyncPipe from 'pipeawait'
 import {
@@ -25,11 +25,11 @@ import {
   omit,
   toInteger,
   getOr,
-  isEmpty
+  isEmpty,
 } from 'lodash/fp'
 import {
   NOT_ALLOWED_DELETE_ADMIN,
-  NOT_ALLOWED_EDIT_DATA_MORE_RESPONSIBILITY
+  NOT_ALLOWED_EDIT_DATA_MORE_RESPONSIBILITY,
 } from '../shared/constants/security.constant'
 import { encrypt } from '../shared/helpers/generic.helper'
 import HttpStatus from 'http-status-codes'
@@ -41,15 +41,15 @@ import {
   ERROR_PASSWORD_NUMBER,
   ERROR_PASSWORD_SPECIAL_CHARACTER,
   ERROR_PASSWORD_MINIMUM_LENGTH,
-  ERROR_PASSWORD_SPACE
+  ERROR_PASSWORD_SPACE,
 } from '../shared/constants/publishers.constant'
 
-const getAllInformationWithPagination = async request => {
+const getAllInformationWithPagination = async (request) => {
   const paramsQuery = {
     ...defaultValueForQuery(request, {
-      sort: 'name:asc'
+      sort: 'name:asc',
     }),
-    user: getLodash('user', request)
+    user: getLodash('user', request),
   }
   return asyncPipe(
     getAllWithPagination,
@@ -57,22 +57,22 @@ const getAllInformationWithPagination = async request => {
   )(paramsQuery)
 }
 
-const get = async request => {
+const get = async (request) => {
   const paramsQuery = {
     ...defaultValueForQuery(request, {
-      sort: 'name:asc'
+      sort: 'name:asc',
     }),
-    user: getLodash('user', request)
+    user: getLodash('user', request),
   }
   return asyncPipe(getAll, curry(responseSuccess)(request))(paramsQuery)
 }
 
-const getAllActives = async request => {
+const getAllActives = async (request) => {
   const paramsQuery = {
     ...defaultValueForQuery(request, {
-      sort: 'name:asc'
+      sort: 'name:asc',
     }),
-    user: getLodash('user', request)
+    user: getLodash('user', request),
   }
   return asyncPipe(
     getAllPublishersActives,
@@ -80,30 +80,30 @@ const getAllActives = async request => {
   )(paramsQuery)
 }
 
-const verifyIfCurrentUserCanEditThisData = obj => {
+const verifyIfCurrentUserCanEditThisData = (obj) => {
   if (currentUserHasMinusReponsibilityThatDataPublisher(obj))
     throw NOT_ALLOWED_EDIT_DATA_MORE_RESPONSIBILITY
 
   return obj
 }
 
-const currentUserHasMinusReponsibilityThatDataPublisher = obj =>
+const currentUserHasMinusReponsibilityThatDataPublisher = (obj) =>
   toInteger(getLodash('idResponsibility', obj)) <
   toInteger(getLodash('data.idResponsibility', obj))
 
 const prepareDataToVerification = (request, data) => ({
   ...data,
-  idResponsibility: getLodash('user.idResponsibility', request)
+  idResponsibility: getLodash('user.idResponsibility', request),
 })
 
 const appendDisabledFields = (request, obj) => ({
   ...obj,
   disabled: currentUserHasMinusReponsibilityThatDataPublisher(
     prepareDataToVerification(request, { data: obj })
-  )
+  ),
 })
 
-const getOne = async request =>
+const getOne = async (request) =>
   asyncPipe(
     getOneRecord,
     curry(appendDisabledFields)(request),
@@ -111,7 +111,7 @@ const getOne = async request =>
     curry(responseSuccess)(request)
   )(getParamsForGetOne(request))
 
-const create = async request =>
+const create = async (request) =>
   asyncPipe(
     validatePassword,
     encryptPassword,
@@ -119,26 +119,26 @@ const create = async request =>
     curry(responseSuccess)(request)
   )(getParamsForCreate(request))
 
-const verifyWhatCanUpdate = obj =>
+const verifyWhatCanUpdate = (obj) =>
   toInteger(getLodash('id', obj)) === 99999
     ? {
         ...obj,
-        data: omit(['idResponsibility'], getLodash('data', obj))
+        data: omit(['idResponsibility'], getLodash('data', obj)),
       }
     : obj
 
 const setValueReAuthenticate = async (id, value) =>
   Boolean(await updateRecord({ id, data: { haveToReauthenticate: value } }))
 
-const reBuildObjectDataToReauthenticate = obj => ({
+const reBuildObjectDataToReauthenticate = (obj) => ({
   id: getLodash('id', obj),
   data: {
     ...getLodash('data', obj),
-    haveToReauthenticate: true
-  }
+    haveToReauthenticate: true,
+  },
 })
 
-const verifyIfIsNecessaryReAuthenticate = async obj =>
+const verifyIfIsNecessaryReAuthenticate = async (obj) =>
   getLodash('data.idResponsibility', obj) &&
   toInteger(getLodash('data.idResponsibility', obj)) !==
     toInteger(
@@ -147,7 +147,7 @@ const verifyIfIsNecessaryReAuthenticate = async obj =>
     ? reBuildObjectDataToReauthenticate(obj)
     : obj
 
-const update = async request => {
+const update = async (request) => {
   return asyncPipe(
     verifyWhatCanUpdate,
     verifyIfIsNecessaryReAuthenticate,
@@ -159,14 +159,14 @@ const update = async request => {
     curry(responseSuccess)(request)
   )(getParamsForUpdate(request))
 }
-const verifyIfCanDelete = id => {
+const verifyIfCanDelete = (id) => {
   if (toInteger(id) === ID_ADMIN) {
     throw NOT_ALLOWED_DELETE_ADMIN
   }
   return id
 }
 
-const deleteOne = async request =>
+const deleteOne = async (request) =>
   asyncPipe(
     verifyIfCanDelete,
     deleteRecord,
@@ -177,23 +177,23 @@ const mountDataWithPasswordForEdit = (obj, password) => ({
   ...obj,
   data: {
     ...obj.data,
-    password
-  }
+    password,
+  },
 })
 
-const mountDataWithoutPasswordForEdit = obj => ({
+const mountDataWithoutPasswordForEdit = (obj) => ({
   ...obj,
   data: {
-    ...omit(['password'], obj.data)
-  }
+    ...omit(['password'], obj.data),
+  },
 })
 
 const mountDataWithPasswordForNew = (data, password) => ({
   ...data,
-  password
+  password,
 })
 
-const encryptPassword = obj => {
+const encryptPassword = (obj) => {
   const password = getOr(getLodash('data.password', obj), 'password', obj)
   const modeEdit = Boolean(getLodash('data.id', obj))
 
@@ -208,42 +208,42 @@ const encryptPassword = obj => {
     : omit(['password'], obj)
 }
 
-const validatePassword = data => {
+const validatePassword = (data) => {
   const password = getOr(getLodash('data.password', data), 'password', data)
 
   const passwordRequirements = [
     {
       regex: /.{8,}/, //  deve ter pelo menos 8 chars,
-      message: ERROR_PASSWORD_MINIMUM_LENGTH
+      message: ERROR_PASSWORD_MINIMUM_LENGTH,
     },
     {
       regex: /[a-z]/, // deve ter pelo menos uma letra minuscula
-      message: ERROR_PASSWORD_LOWERCASE_LETTER
+      message: ERROR_PASSWORD_LOWERCASE_LETTER,
     },
     {
       regex: /[A-Z]/, // deve ter pelo menos uma letra maiuscula
-      message: ERROR_PASSWORD_UPPERCASE_LETTER
+      message: ERROR_PASSWORD_UPPERCASE_LETTER,
     },
     {
       regex: /[0-9]/, // deve ter pelo menos um numero
-      message: ERROR_PASSWORD_NUMBER
+      message: ERROR_PASSWORD_NUMBER,
     },
     {
       regex: /[^A-Za-z0-9]/, // deve ter pelo menos um caractere especial
-      message: ERROR_PASSWORD_SPECIAL_CHARACTER
+      message: ERROR_PASSWORD_SPECIAL_CHARACTER,
     },
     {
       regex: /^\S*$/, // must not contain spaces
-      message: ERROR_PASSWORD_SPACE
-    }
+      message: ERROR_PASSWORD_SPACE,
+    },
   ]
   password &&
-    passwordRequirements.forEach(it => {
+    passwordRequirements.forEach((it) => {
       if (!it.regex.test(String(password))) {
         throw {
           httpErrorCode: HttpStatus.BAD_REQUEST,
           error: it.message,
-          extra: password
+          extra: password,
         }
       }
     })
@@ -251,7 +251,7 @@ const validatePassword = data => {
   return data
 }
 
-const getAllFiltersOfPublishers = async request =>
+const getAllFiltersOfPublishers = async (request) =>
   asyncPipe(
     getFilters,
     curry(responseSuccess)(request)
@@ -266,5 +266,5 @@ export default {
   create,
   update,
   deleteOne,
-  setValueReAuthenticate
+  setValueReAuthenticate,
 }

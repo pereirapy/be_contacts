@@ -5,7 +5,7 @@ const tableName = 'cities'
 const columnPrimary = 'id'
 const fields = ['name']
 
-const getAll = async queryParams => {
+const getAll = async (queryParams) => {
   const { sort = `${tableName}.name:ASC` } = queryParams
   return knex
     .select(

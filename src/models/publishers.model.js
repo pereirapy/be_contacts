@@ -8,7 +8,7 @@ const tableName = 'publishers'
 const columnPrimary = 'id'
 const omitColumns = ['password', 'haveToReauthenticate', 'hash']
 
-const getAllWithPagination = async queryParams => {
+const getAllWithPagination = async (queryParams) => {
   const { sort = 'name:ASC', perPage, currentPage, filters } = queryParams
   const sql = knex
     .select(
@@ -32,7 +32,7 @@ const getAllWithPagination = async queryParams => {
     const { name, phone, email, responsibility } = JSON.parse(filters)
 
     if (!isEmpty(name) && !isEmpty(phone)) {
-      sql.where(builder =>
+      sql.where((builder) =>
         builder
           .where('publishers.name', 'ilike', `%${name}%`)
           .orWhere('publishers.phone', 'ilike', `%${phone}%`)
@@ -40,7 +40,7 @@ const getAllWithPagination = async queryParams => {
       )
     }
     if (!isEmpty(responsibility))
-      sql.andWhere(qB =>
+      sql.andWhere((qB) =>
         qB.whereIn('publishers.idResponsibility', responsibility)
       )
   }
@@ -69,15 +69,16 @@ const getFilters = async () => {
   return { responsibility }
 }
 
-const removeColumnNotAllowed = data => map(pub => omit(omitColumns, pub), data)
+const removeColumnNotAllowed = (data) =>
+  map((pub) => omit(omitColumns, pub), data)
 
-const getAll = async queryParams =>
+const getAll = async (queryParams) =>
   await asyncPipe(
     curry(crud.getAll)(tableName),
     removeColumnNotAllowed
   )(queryParams)
 
-const getAllPublishersActives = async queryParams => {
+const getAllPublishersActives = async (queryParams) => {
   const { sort } = queryParams
 
   return asyncPipe(
@@ -86,25 +87,25 @@ const getAllPublishersActives = async queryParams => {
   )({ sort, tableName, where: { active: true } })
 }
 
-const getOneRecord = async id =>
+const getOneRecord = async (id) =>
   crud.getOneRecord({ id, tableName, columnPrimary })
 
 const getRecordForAuth = async (id, column) =>
   crud.getOneRecord({ id, tableName, columnPrimary: column })
 
-const createRecord = async data =>
+const createRecord = async (data) =>
   await asyncPipe(
     curry(crud.createRecord)(data),
     removeColumnNotAllowed
   )(tableName)
 
 const updateRecord = async ({ id, data }) =>
-  await asyncPipe(crud.updateRecord, data => ({
+  await asyncPipe(crud.updateRecord, (data) => ({
     ...data,
-    data: removeColumnNotAllowed(data.data)
+    data: removeColumnNotAllowed(data.data),
   }))({ id, data, tableName, columnPrimary })
 
-const deleteRecord = async id =>
+const deleteRecord = async (id) =>
   crud.deleteRecord({ id, tableName, columnPrimary })
 
 export {
@@ -117,5 +118,5 @@ export {
   updateRecord,
   deleteRecord,
   getRecordForAuth,
-  omitColumns
+  omitColumns,
 }

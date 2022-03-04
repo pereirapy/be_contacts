@@ -9,19 +9,19 @@ const putFields = ['idMinimumResponsibilityRequired']
 const getUserPermission = async (page, method) =>
   crud.getOneWithWhere({
     tableName,
-    where: { page: toLower(page), method: toLower(method) }
+    where: { page: toLower(page), method: toLower(method) },
   })
 
-const getAll = async queryParams => crud.getAll(tableName, queryParams)
+const getAll = async (queryParams) => crud.getAll(tableName, queryParams)
 
-const getOneWithWhere = async where => crud.getOneWithWhere(tableName, where)
+const getOneWithWhere = async (where) => crud.getOneWithWhere(tableName, where)
 
-const createRecord = async data => crud.createRecord(data, tableName)
+const createRecord = async (data) => crud.createRecord(data, tableName)
 
 const updateRecord = async ({ id, data }) =>
   crud.updateRecord({ id, data, tableName, columnPrimary })
 
-const deleteRecord = async id =>
+const deleteRecord = async (id) =>
   crud.deleteRecord({ id, tableName, columnPrimary })
 
 export {
@@ -32,5 +32,5 @@ export {
   updateRecord,
   deleteRecord,
   fields,
-  putFields
+  putFields,
 }

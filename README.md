@@ -2,8 +2,9 @@
 
 ## First Steps
 
-1- Clone the project
-2 - Update the files knexfile.js (both) to use your credentials in development or test environment. In production environment you have to create the env "DATABASE_URL". In Heroku you have a special space to add new environment variable.
+1 - Clone the project
+
+2 - Update the files knexfile.js (both) to use your credentials in development or test environment. In production environment when you attach the database, heroku will creates the env `DATABASE_URL`.
 
 3 - Development environment:
 
@@ -12,7 +13,7 @@
 
 4 - Production environment:
 
-- Creates a new database and save the URL to use in variable environment
+- Creates a new database
   - Go to `https://dashboard.heroku.com/apps` and create a new app
   - Connect with your GitHub repo that has your backend files
   - Enable automatic deploys

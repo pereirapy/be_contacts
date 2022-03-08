@@ -8,12 +8,13 @@
 
 3 - Development environment:
 
+- Run `npm install`
 - After you have created the database run `npm run db:migrate` to create all tables, views and the mandatory data
-- run `npm run dev`
+- Run `npm run dev`
 
 4 - Production environment:
 
-- Creates a new database
+- Creates a new database using Heroku (You need to have a account here)
   - Go to `https://dashboard.heroku.com/apps` and create a new app
   - Connect with your GitHub repo that has your backend files
   - Enable automatic deploys

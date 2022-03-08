@@ -30,10 +30,10 @@ In the project directory, you can run:
 
 ### `npm run dev`
 
-Runs the app in the development mode.<br />
-You will also see any lint errors in the console.
+- Runs the app in the development mode.
+- You will also see any lint errors in the console.
 
 ### `npm start`
 
-Builds the app for production.<br />
-It correctly bundles React in production mode and optimizes the build for the best performance.
+- Builds the app for production.
+- It correctly bundles React in production mode and optimizes the build for the best performance.

@@ -117,6 +117,15 @@ const getDetailsCampaignActive = async () =>
     .andWhere('dateFinal', '>=', moment().format('YYYY-MM-DD'))
     .first()
 
+const getDetailsNextCampaign = async () =>
+  knex
+    .select('*')
+    .from(tableName)
+    .where('dateStart', '>', moment().format('YYYY-MM-DD'))
+    .andWhere('dateFinal', '>', moment().format('YYYY-MM-DD'))
+    .orderBy('dateStart')
+    .first()
+
 const getCampaignByIntervalDate = async (dateStart, dateFinal) =>
   knex
     .select('*')
@@ -347,5 +356,6 @@ export {
   getAllContactsCampaignActiveFilters,
   getDetailsCampaignActive,
   getCampaignByIntervalDate,
+  getDetailsNextCampaign,
   fields,
 }

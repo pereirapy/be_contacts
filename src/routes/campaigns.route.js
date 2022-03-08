@@ -4,6 +4,7 @@ import campaignsController from '../controllers/campaigns.controller'
 const routes = Router()
 
 routes.get('/', campaignsController.get)
+routes.get('/next', campaignsController.getDetailsNextCampaign)
 routes.get('/active/details', campaignsController.getDetailsCampaignActive)
 routes.get('/:id/all', campaignsController.getAllContactsOneCampaign)
 routes.get('/:id/all/filters', campaignsController.getAllContactsOneCampaignFilters)

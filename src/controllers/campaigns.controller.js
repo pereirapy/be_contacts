@@ -41,6 +41,14 @@ const getDetailsCampaignActive = async (request, response, next) => {
   }
 }
 
+const getDetailsNextCampaign = async (request, response, next) => {
+  try {
+    response.json(await campaignsService.getDetailsNextCampaign(request))
+  } catch (error) {
+    next(responseNext(error, request))
+  }
+}
+
 const create = async (request, response, next) => {
   try {
     response.json(await campaignsService.create(request))
@@ -71,6 +79,7 @@ export default {
   getAllContactsOneCampaign,
   getAllContactsOneCampaignFilters,
   getDetailsCampaignActive,
+  getDetailsNextCampaign,
   create,
   update,
   deleteOne,

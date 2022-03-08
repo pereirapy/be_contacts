@@ -52,6 +52,13 @@ const getDetailsCampaignActive = async (request) => {
   )()
 }
 
+const getDetailsNextCampaign = async (request) => {
+  return asyncPipe(
+    campaignsModel.getDetailsNextCampaign,
+    curry(responseSuccess)(request)
+  )()
+}
+
 const verifyIfExistsAnotherCampaignActive = async (bag) => {
   const dataCampaign = getOr(bag, 'data', bag)
 
@@ -95,6 +102,7 @@ export default {
   getAllContactsOneCampaign,
   getAllContactsOneCampaignFilters,
   getDetailsCampaignActive,
+  getDetailsNextCampaign,
   create,
   update,
   deleteOne,

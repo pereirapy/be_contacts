@@ -20,7 +20,7 @@ module.exports = {
     },
   },
   test: {
-    client: 'postgresql',
+    client: 'pg',
     connection: {
       database: 'contacts-test',
       user: 'postgres',

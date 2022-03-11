@@ -197,6 +197,7 @@ const getDetailsAllContactWaitingFeedback = async ({ query, user }) => {
       status,
       typeCompany,
       publishersResponsibles,
+      campaigns,
     } = JSON.parse(filters)
 
     if (
@@ -222,6 +223,10 @@ const getDetailsAllContactWaitingFeedback = async ({ query, user }) => {
       sql.andWhere((qB) => qB.whereIn('idLanguage', languages))
 
     if (!isEmpty(status)) sql.andWhere((qB) => qB.whereIn('idStatus', status))
+
+    if (!isEmpty(campaigns))
+      sql.andWhere((qB) => qB.whereIn('idCampaign', campaigns))
+
     if (!isEmpty(publishersResponsibles))
       sql.andWhere((qB) => qB.whereIn('createdBy', publishersResponsibles))
 
@@ -252,14 +257,15 @@ const getGenders = async (user) => {
 
 const getCampaigns = async (user) => {
   const sql = knex
-    .count('detailsContacts.idCampaign')
-    .select('detailsContacts.idCampaign', 'campaigns.name as campaignName')
+    .count('idCampaign')
+    .select('idCampaign', 'campaigns.name as campaignName')
     .from(tableName)
     .leftJoin('contacts', 'detailsContacts.phoneContact', '=', 'contacts.phone')
     .leftJoin('campaigns', 'campaigns.id', '=', 'detailsContacts.idCampaign')
     .where('detailsContacts.information', WAITING_FEEDBACK)
-    .whereNotNull('detailsContacts.idCampaign')
-    .groupBy('detailsContacts.idCampaign', 'campaigns.name')
+    .andWhere((builder) => builder.whereNotNull('detailsContacts.idCampaign'))
+
+    .groupBy('idCampaign', 'campaigns.name')
 
   if (user.idResponsibility < MINISTERIAL_SERVANT) {
     sql.where((builder) =>
@@ -268,10 +274,11 @@ const getCampaigns = async (user) => {
         .orWhere('detailsContacts.idPublisher', user.id)
     )
   }
-  sql.orderBy('campaigns.name')
+  sql.orderBy('campaignName')
 
   return sql
 }
+
 const getLanguages = async (user) => {
   const sql = knex
     .count('idLanguage')
@@ -315,6 +322,7 @@ const getStatus = async (user) => {
 
   return sql
 }
+
 const getPublishersResponsibles = async (user) => {
   const sql = knex
     .count('detailsContacts.createdBy')

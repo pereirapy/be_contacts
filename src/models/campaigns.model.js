@@ -42,7 +42,8 @@ const buildSQLGetAll = (idCampaign, queryParams) => {
       'idCampaign',
       'campaignName',
       'campaignDateStart',
-      'campaignDateFinal'
+      'campaignDateFinal',
+      'idDetailContact'
     )
     .from('viewListAllContacts')
   sql.whereNotNull('phone').andWhere('idCampaign', idCampaign)

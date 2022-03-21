@@ -8,6 +8,8 @@ import {
   reduce,
   concat,
   get as getLodash,
+  getOr,
+  omit,
 } from 'lodash/fp'
 import { WAITING_FEEDBACK } from '../shared/constants/contacts.constant'
 import { MINISTERIAL_SERVANT } from '../shared/constants/permissions.constant'
@@ -383,7 +385,8 @@ const getType = async (user) => {
   )
 }
 
-const getFiltersWaitingFeedback = async ({ user }) => {
+const getFiltersWaitingFeedback = async ({ user, query }) => {
+  const filtersToOmit = getOr([], 'toOmit', query)
   const genders = await getGenders(user)
   const languages = await getLanguages(user)
   const campaigns = await getCampaigns(user)
@@ -391,7 +394,7 @@ const getFiltersWaitingFeedback = async ({ user }) => {
   const publishersResponsibles = await getPublishersResponsibles(user)
   const typeCompany = await getType(user)
 
-  return {
+  const filtersData = {
     genders,
     languages,
     campaigns,
@@ -399,6 +402,7 @@ const getFiltersWaitingFeedback = async ({ user }) => {
     publishersResponsibles,
     typeCompany,
   }
+  return omit(filtersToOmit, filtersData)
 }
 
 const createRecord = async (data) => crud.createRecord(data, tableName)

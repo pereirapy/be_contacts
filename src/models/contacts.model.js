@@ -4,7 +4,7 @@ import crud from './crudGeneric.model'
 import { getDetailsCampaignActive } from './campaigns.model'
 
 import { WAITING_FEEDBACK } from '../shared/constants/contacts.constant'
-import { isEmpty, map, reduce, concat, isNil, some, compact } from 'lodash/fp'
+import { isEmpty, map, reduce, concat, isNil, some, compact, omit } from 'lodash/fp'
 
 const tableName = 'contacts'
 const columnPrimary = 'phone'
@@ -48,6 +48,7 @@ const getAll = async (queryParams) => {
     locations,
     typeCompany,
     modeAllContacts,
+    campaigns,
   } = JSON.parse(filters)
 
   const campaign = await getDetailsCampaignActive()
@@ -73,6 +74,7 @@ const getAll = async (queryParams) => {
       'information',
       'waitingFeedback',
       'createdAtDetailsContacts',
+      'updatedAtDetailsContacts',
       'updatedAt',
       'publisherNameUpdatedBy',
       'idCampaign',
@@ -106,6 +108,9 @@ const getAll = async (queryParams) => {
           .orWhere('note', 'ilike', `%${note}%`)
       )
     }
+
+    if (!isEmpty(campaigns))
+      sql.andWhere((qB) => qB.whereIn('idCampaign', campaigns))
 
     if (!isEmpty(genders)) sql.andWhere((qB) => qB.whereIn('gender', genders))
 
@@ -204,7 +209,8 @@ const getType = async () => {
     typeCompany
   )
 }
-const getFilters = async () => {
+const getFilters = async ({ toOmit }) => {
+  const filtersToOmit = toOmit ? JSON.parse(toOmit) : []
   const genders = await getGenders()
   const languages = await getLanguages()
   const status = await getStatus()
@@ -212,7 +218,7 @@ const getFilters = async () => {
   const typeCompany = await getType()
   const campaigns = await getCampaigns()
 
-  return {
+  const filtersData = {
     genders,
     languages,
     status,
@@ -220,6 +226,9 @@ const getFilters = async () => {
     typeCompany,
     campaigns,
   }
+
+  return omit(filtersToOmit, filtersData)
+
 }
 
 const getOneWithDetails = async (phone) =>

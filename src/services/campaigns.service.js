@@ -83,19 +83,28 @@ const verifyIfExistsAnotherCampaignActive = async (bag) => {
 const verifyIfThisCampaignAlreadyHasDetailsContacts = async (bag) => {
   const dataFromFE = getOr(bag, 'data', bag)
   const id = getOr(false, 'id', dataFromFE)
+
   const detailsContactsOneCampaign = id
     ? await detailsContactsModel.getDetailsContactOneCampaign({
         id,
       })
     : false
 
-  const thisCampaignAlreadyHasContactsContacted =
+    const thisCampaignAlreadyHasContactsContacted =
     detailsContactsOneCampaign && detailsContactsOneCampaign.length > 0
 
-  if (
+  const campaignDateStart = detailsContactsOneCampaign
+    ? detailsContactsOneCampaign[0].campaignDateStart
+    : null
+
+    const campaignDateFinal = detailsContactsOneCampaign
+    ? detailsContactsOneCampaign[0].campaignDateFinal
+    : null
+
+    if (
     thisCampaignAlreadyHasContactsContacted &&
-    (dataFromFE.dateStart !== detailsContactsOneCampaign.campaignDateStart ||
-      dataFromFE.dateFinal !== detailsContactsOneCampaign.campaignDateFinal)
+    (dataFromFE.dateStart !== campaignDateStart ||
+      dataFromFE.dateFinal !== campaignDateFinal)
   ) {
     throw {
       httpErrorCode: HttpStatus.INTERNAL_SERVER_ERROR,

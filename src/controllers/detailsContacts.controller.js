@@ -64,6 +64,15 @@ const deleteOne = async (request, response, next) => {
     next(responseNext(error, request))
   }
 }
+
+const hasSomeContactDuringTheCampaign = async (request, response, next) => {
+  try {
+    response.json(await detailsService.hasSomeContactDuringTheCampaign(request))
+  } catch (error) {
+    next(responseNext(error, request))
+  }
+}
+
 export default {
   get,
   getOne,
@@ -73,4 +82,5 @@ export default {
   create,
   update,
   deleteOne,
+  hasSomeContactDuringTheCampaign,
 }

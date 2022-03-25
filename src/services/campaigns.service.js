@@ -1,5 +1,6 @@
+import asyncPipe from 'pipeawait'
 import HttpStatus from 'http-status-codes'
-import * as campaignsModel from '../models/campaigns.model'
+import { curry, getOr, get as getLodash } from 'lodash/fp'
 
 import {
   getParamsForUpdate,
@@ -8,12 +9,15 @@ import {
   defaultValueForQuery,
   getParamsForGetOneWithQuery,
   getParamsForGetOne,
-  getParamsForGetOneWithUser
+  getParamsForGetOneWithUser,
 } from '../shared/helpers/generic.helper'
+import {
+  ERROR_CAMPAIGN_SAME_INTERVAL_DATE,
+  ERROR_CAMPAIGN_ALREADY_HAS_DETAILS_CONTACTS,
+} from '../shared/constants/campaigns.constant'
+import * as campaignsModel from '../models/campaigns.model'
+import * as detailsContactsModel from '../models/detailsContacts.model'
 import { responseSuccess } from '../shared/helpers/responseGeneric.helper'
-import asyncPipe from 'pipeawait'
-import { curry, getOr, get as getLodash } from 'lodash/fp'
-import { ERROR_CAMPAIGN_SAME_INTERVAL_DATE } from '../shared/constants/campaigns.constant'
 
 const get = async (request) => {
   const paramsQuery = defaultValueForQuery(request, {
@@ -76,6 +80,31 @@ const verifyIfExistsAnotherCampaignActive = async (bag) => {
   return bag
 }
 
+const verifyIfThisCampaignAlreadyHasDetailsContacts = async (bag) => {
+  const dataFromFE = getOr(bag, 'data', bag)
+  const id = getOr(false, 'id', dataFromFE)
+  const detailsContactsOneCampaign = id
+    ? await detailsContactsModel.getDetailsContactOneCampaign({
+        id,
+      })
+    : false
+
+  const thisCampaignAlreadyHasContactsContacted =
+    detailsContactsOneCampaign && detailsContactsOneCampaign.length > 0
+
+  if (
+    thisCampaignAlreadyHasContactsContacted &&
+    (dataFromFE.dateStart !== detailsContactsOneCampaign.campaignDateStart ||
+      dataFromFE.dateFinal !== detailsContactsOneCampaign.campaignDateFinal)
+  ) {
+    throw {
+      httpErrorCode: HttpStatus.INTERNAL_SERVER_ERROR,
+      error: ERROR_CAMPAIGN_ALREADY_HAS_DETAILS_CONTACTS,
+    }
+  }
+  return bag
+}
+
 const create = async (request) =>
   asyncPipe(
     verifyIfExistsAnotherCampaignActive,
@@ -86,6 +115,7 @@ const create = async (request) =>
 const update = async (request) =>
   asyncPipe(
     verifyIfExistsAnotherCampaignActive,
+    verifyIfThisCampaignAlreadyHasDetailsContacts,
     campaignsModel.updateRecord,
     curry(responseSuccess)(request)
   )(getParamsForUpdate(request))

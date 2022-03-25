@@ -1,6 +1,3 @@
-import knex from '../config/connection'
-import crud from './crudGeneric.model'
-import { getDetailsCampaignActive } from './campaigns.model'
 import {
   isNil,
   isEmpty,
@@ -11,6 +8,10 @@ import {
   getOr,
   omit,
 } from 'lodash/fp'
+
+import knex from '../config/connection'
+import crud from './crudGeneric.model'
+import { getDetailsCampaignActive } from './campaigns.model'
 import { WAITING_FEEDBACK } from '../shared/constants/contacts.constant'
 import { MINISTERIAL_SERVANT } from '../shared/constants/permissions.constant'
 
@@ -436,6 +437,20 @@ const deleteRecords = async (where) => crud.deleteRecords({ where, tableName })
 const deleteRecordByPhone = (phone) =>
   knex(tableName).where('phoneContact', '=', phone).delete()
 
+const getDetailsContactOneCampaign = async ({ id }) => {
+  return knex
+    .select(
+      'detailsContacts.*',
+      'campaigns.name as campaignName',
+      'campaigns.dateStart as campaignDateStart',
+      'campaigns.dateFinal as campaignDateFinal'
+    )
+    .from(tableName)
+    .leftJoin('contacts', 'detailsContacts.phoneContact', '=', 'contacts.phone')
+    .leftJoin('campaigns', 'campaigns.id', '=', 'detailsContacts.idCampaign')
+    .where('detailsContacts.idCampaign', id)
+}
+
 export {
   getOne,
   getDetailsAllContactWaitingFeedback,
@@ -451,6 +466,7 @@ export {
   deleteRecords,
   deleteRecordByPhone,
   updateIsLastValueOneContact,
+  getDetailsContactOneCampaign,
   columnPrimary,
   fields,
 }

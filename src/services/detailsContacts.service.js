@@ -1,3 +1,7 @@
+import asyncPipe from 'pipeawait'
+import HttpStatus from 'http-status-codes'
+import { curry, get as getLodash } from 'lodash/fp'
+
 import {
   getOne,
   getDetailsAllContactWaitingFeedback,
@@ -10,12 +14,8 @@ import {
   updateRecords,
   deleteRecord,
   updateIsLastValueOneContact,
+  getDetailsContactOneCampaign,
 } from '../models/detailsContacts.model'
-import { updateRecord as updateRecordContacts } from '../models/contacts.model'
-import HttpStatus from 'http-status-codes'
-import { ERROR_PUBLISHER_ALREADY_WAITING_FEEDBACK } from '../shared/constants/contacts.constant'
-
-import { responseSuccess } from '../shared/helpers/responseGeneric.helper'
 import {
   getParamsForGetOne,
   getParamsForUpdate,
@@ -25,8 +25,9 @@ import {
   getParamsForGetOneWithQuery,
   getParamsForGetWithUser,
 } from '../shared/helpers/generic.helper'
-import asyncPipe from 'pipeawait'
-import { curry, get as getLodash } from 'lodash/fp'
+import { responseSuccess } from '../shared/helpers/responseGeneric.helper'
+import { updateRecord as updateRecordContacts } from '../models/contacts.model'
+import { ERROR_PUBLISHER_ALREADY_WAITING_FEEDBACK } from '../shared/constants/contacts.constant'
 
 const get = async (request) => {
   const paramsQuery = defaultValueForQuery(request, {
@@ -57,6 +58,7 @@ const getAllDetailsOneContact = async (request) => {
     curry(responseSuccess)(request)
   )(getParamsForGetOneWithQuery(request))
 }
+
 const getOneDetail = async (request) => {
   return asyncPipe(
     getOne,
@@ -153,6 +155,18 @@ const deleteOne = async (request) =>
     curry(responseSuccess)(request)
   )(getParamsForDelete(request))
 
+const hasSomeContactDuringTheCampaign = async (request) => {
+  return asyncPipe(
+    getDetailsContactOneCampaign,
+    (data) => {
+      return {
+        res: Boolean(data)
+      }
+    },
+    curry(responseSuccess)(request)
+  )(getParamsForGetOneWithQuery(request))
+}
+
 export default {
   get,
   getAllDetailsOneContact,
@@ -162,4 +176,5 @@ export default {
   create,
   update,
   deleteOne,
+  hasSomeContactDuringTheCampaign,
 }

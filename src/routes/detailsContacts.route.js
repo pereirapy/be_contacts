@@ -1,4 +1,5 @@
 import { Router } from 'express'
+
 import detailsContactsController from '../controllers/detailsContacts.controller'
 
 const routes = Router()
@@ -10,7 +11,10 @@ routes.get(
   '/filtersWaitingFeedback',
   detailsContactsController.getAllFiltersWaitingFeedback
 )
-
+routes.get(
+  '/campaign/hasSomeContact/:id',
+  detailsContactsController.hasSomeContactDuringTheCampaign
+)
 routes.get('/:id', detailsContactsController.getOne)
 
 routes.post('/', detailsContactsController.create)

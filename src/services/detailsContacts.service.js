@@ -160,7 +160,7 @@ const hasSomeContactDuringTheCampaign = async (request) => {
     getDetailsContactOneCampaign,
     (data) => {
       return {
-        res: Boolean(data)
+        res: data.length > 0
       }
     },
     curry(responseSuccess)(request)

@@ -19,22 +19,38 @@ const dataPublishers = [
 ]
 
 async function responsibility(knex) {
+  await knex.raw(
+    `ALTER SEQUENCE responsibility_id_seq RESTART WITH ${
+      dataResponsibility.length + 1
+    }`
+  )
   return knex('responsibility').insert(dataResponsibility)
 }
 
 async function publishers(knex) {
+  await knex.raw(`ALTER SEQUENCE publishers_id_seq RESTART WITH 2`)
+
   return knex('publishers').insert(dataPublishers)
 }
 
 async function permissions(knex) {
+  await knex.raw(`ALTER SEQUENCE permissions_id_seq RESTART WITH 1`)
+
   return knex('permissions').insert(dataPermissions)
 }
 
 async function status(knex) {
+  await knex.raw(
+    `ALTER SEQUENCE status_id_seq RESTART WITH ${dataStatus.length + 1}`
+  )
+
   return knex('status').insert(dataStatus)
 }
 
 async function languages(knex) {
+  await knex.raw(
+    `ALTER SEQUENCE languages_id_seq RESTART WITH ${dataLanguages.length + 1}`
+  )
   return knex('languages').insert(dataLanguages)
 }
 

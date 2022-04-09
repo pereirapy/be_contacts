@@ -18,6 +18,7 @@ const fieldsNoTypeText = [
   'dateFinal',
   'campaignDateFinal',
   'waitingFeedback',
+  'typeCompany',
 ]
 
 export {

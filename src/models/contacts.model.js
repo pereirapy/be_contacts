@@ -3,8 +3,20 @@ import * as detailsContact from './detailsContacts.model'
 import crud from './crudGeneric.model'
 import { getDetailsCampaignActive } from './campaigns.model'
 
-import { WAITING_FEEDBACK } from '../shared/constants/contacts.constant'
-import { isEmpty, map, reduce, concat, isNil, some, compact, omit } from 'lodash/fp'
+import {
+  WAITING_FEEDBACK,
+  STATUS_FORWARDED,
+} from '../shared/constants/contacts.constant'
+import {
+  isEmpty,
+  map,
+  reduce,
+  concat,
+  isNil,
+  some,
+  compact,
+  omit,
+} from 'lodash/fp'
 
 const tableName = 'contacts'
 const columnPrimary = 'phone'
@@ -86,6 +98,10 @@ const getAll = async (queryParams) => {
 
   sql.whereNotNull('phone')
 
+  if (!isEmpty(filters) && modeAllContacts !== '-1') {
+    sql.andWhere((builder) => builder.where('idStatus', '<>', STATUS_FORWARDED))
+  }
+
   if (!isEmpty(filters) && modeAllContacts !== '-1' && campaign) {
     sql.andWhere((builder) =>
       builder.where('idCampaign', '<>', campaign.id).orWhereNull('idCampaign')
@@ -165,13 +181,19 @@ const getLanguages = async () =>
     .leftJoin('languages', 'languages.id', '=', 'contacts.idLanguage')
     .groupBy('idLanguage', 'languages.name')
 
-const getStatus = async () =>
-  knex
+const getStatus = async (modeAllContacts) => {
+  const sql = knex
     .count('idStatus')
     .select('idStatus', 'status.description as statusDescription')
     .from(tableName)
     .leftJoin('status', 'status.id', '=', 'contacts.idStatus')
-    .groupBy('idStatus', 'status.description')
+
+  if (modeAllContacts !== '-1') {
+    sql.where('idStatus', '<>', STATUS_FORWARDED)
+  }
+
+  return sql.groupBy('idStatus', 'status.description')
+}
 
 const getLocations = async () =>
   knex
@@ -209,11 +231,11 @@ const getType = async () => {
     typeCompany
   )
 }
-const getFilters = async ({ toOmit }) => {
+const getFilters = async ({ toOmit, modeAllContacts }) => {
   const filtersToOmit = toOmit ? JSON.parse(toOmit) : []
   const genders = await getGenders()
   const languages = await getLanguages()
-  const status = await getStatus()
+  const status = await getStatus(modeAllContacts)
   const locations = await getLocations()
   const typeCompany = await getType()
   const campaigns = await getCampaigns()
@@ -228,7 +250,6 @@ const getFilters = async ({ toOmit }) => {
   }
 
   return omit(filtersToOmit, filtersData)
-
 }
 
 const getOneWithDetails = async (phone) =>

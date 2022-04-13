@@ -6,6 +6,7 @@ import { getDetailsCampaignActive } from './campaigns.model'
 import {
   WAITING_FEEDBACK,
   STATUS_FORWARDED,
+  STATUS_NO_VISIT,
 } from '../shared/constants/contacts.constant'
 import {
   isEmpty,
@@ -99,7 +100,11 @@ const getAll = async (queryParams) => {
   sql.whereNotNull('phone')
 
   if (!isEmpty(filters) && modeAllContacts !== '-1') {
-    sql.andWhere((builder) => builder.where('idStatus', '<>', STATUS_FORWARDED))
+    sql.andWhere((builder) =>
+      builder
+        .where('idStatus', '<>', STATUS_FORWARDED)
+        .andWhere('idStatus', '<>', STATUS_NO_VISIT)
+    )
   }
 
   if (!isEmpty(filters) && modeAllContacts !== '-1' && campaign) {
@@ -189,7 +194,9 @@ const getStatus = async (modeAllContacts) => {
     .leftJoin('status', 'status.id', '=', 'contacts.idStatus')
 
   if (modeAllContacts !== '-1') {
-    sql.where('idStatus', '<>', STATUS_FORWARDED)
+    sql
+      .where('idStatus', '<>', STATUS_FORWARDED)
+      .andWhere('idStatus', '<>', STATUS_NO_VISIT)
   }
 
   return sql.groupBy('idStatus', 'status.description')
@@ -424,6 +431,17 @@ const getSummaryTotals = async (userId, idCampaign) => {
       'departments.name'
     )
 
+  let totalContactsReachedGoal = 0
+  if (idCampaign) {
+    const totalContactsReachedGoalSql = knex('detailsContacts')
+      .countDistinct('phoneContact')
+      .whereNot({ information: WAITING_FEEDBACK })
+      .andWhere('goalReached', true)
+      .andWhere('idCampaign', idCampaign)
+
+    totalContactsReachedGoal = await totalContactsReachedGoalSql.first()
+  }
+
   return {
     totalContacts,
     totalContactsContacted,
@@ -438,6 +456,7 @@ const getSummaryTotals = async (userId, idCampaign) => {
     totalContactsByType,
     totalContactsByLocation,
     totalContactsByLocationContacted,
+    totalContactsReachedGoal,
   }
 }
 

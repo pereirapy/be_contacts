@@ -19,7 +19,7 @@
     "lint:eslint": "eslint . --ext .js,.jsx --fix",
     "lint:format": "prettier --config .prettierrc 'src/**/*.js'  --check",
     "format": "prettier --config .prettierrc \"./src/**/*.js\" --write",
-    "install": "node_modules/.bin/knex migrate:latest"
+    "poststart": "node_modules/.bin/knex migrate:latest"
   },
   "keywords": [],
   "author": "",

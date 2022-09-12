@@ -18,7 +18,7 @@
     "lint": "npm run lint:eslint && npm run lint:format",
     "lint:eslint": "eslint . --ext .js,.jsx --fix",
     "lint:format": "prettier --config .prettierrc 'src/**/*.js'  --check",
-    "format": "prettier --config .prettierrc \"./src/**/*.js\" --write",
+    "format": "prettier --config .prettierrc \"./src/**/*.js\" --write"
   },
   "keywords": [],
   "author": "",
